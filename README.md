@@ -21,13 +21,13 @@ Options to configure in the plugin settings:
   mqttUsername:         "The mqtt hosted server username"
   mqttPassword:         "The mqtt hosted server password"
   mqttBaseTopic:        "gBridge/u{user_id}/" not changable in free plan
-  certPath:             "Path to the certificate of the client in PEM format, required for the MQTTS/TLS connection"
-  keyPath:              "Path to the key of the client in PEM format, required for the MQTTS/TLS connection"
+  certPath:             "Path to the certificate in PEM format for the MQTTS/TLS connection"
+  keyPath:              "Path to the key in PEM format,  for the MQTTS/TLS connection"
   caPath:               "Path to the trusted CA list"
   gbridgeServer:        "The gBridge api server address" default: "https://gbridge.kappelt.net/api/v2"
   gbridgeUser:          "The gbridge username"
   gbridgePassword:      "The gbridge password"
-  debug:                "Debug mode. Writes debug messages to the pimatic log, if set to true."
+  debug:                "Debug mode. Writes debug messages to the pimatic log."
 }
 ...
 ```
