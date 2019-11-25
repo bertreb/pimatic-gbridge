@@ -24,7 +24,7 @@
     "google",
     "assistant"
   ],
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bertreb/pimatic-gbridge.git"
@@ -34,7 +34,8 @@
     "mqtt": ">=2.0.0",
     "mqtt-wildcard": "^3.0.9",
     "request": "^2.79.0",
-    "request-promise": "^4.1.1"
+    "request-promise": "^4.1.1",
+    "lodash": "^4.17.15"
   },
   "peerDependencies": {
     "pimatic": "0.9.*"
