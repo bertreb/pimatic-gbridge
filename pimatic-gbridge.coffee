@@ -46,6 +46,7 @@ module.exports = (env) ->
       @gbridgeSubscription = @config.gbridgeSubscription
       @mqttBaseTopic = @gbridgePrefix + "/" + @userPrefix + "/#"
 
+      return
       @mqttClient = null
       @Connection = new Promise( (resolve, reject) =>
         @mqttClient = new mqtt.connect(@mqttOptions)
