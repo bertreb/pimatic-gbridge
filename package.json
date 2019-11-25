@@ -1,0 +1,43 @@
+{
+  "name": "pimatic-gbridge",
+  "description": "gBrige gateway for Pimatic home automation system",
+  "author": {
+    "name": "Bert Gierveld",
+    "email": "gitbertreb@gmail.com",
+    "url": "https://github.com/bertreb"
+  },
+  "main": "pimatic-gbridge",
+  "files": [
+    "pimatic-gbridge.coffee",
+    "pimatic-gbridge-config-schema.coffee",
+    "device-config-schema.coffee",
+    "gbridge-connector.coffee",
+    "adapters/light.coffee",
+    "adapters/switch.coffee",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://github.com/bertreb/pimatic-gbridge.git",
+  "keywords": [
+    "pimatic",
+    "gbridge",
+    "google",
+    "assistant"
+  ],
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bertreb/pimatic-gbridge.git"
+  },
+  "configSchema": "pimatic-gbridge-config-schema.coffee",
+  "dependencies": {
+    "mqtt": ">=2.0.0"
+  },
+  "peerDependencies": {
+    "pimatic": "0.9.*"
+  },
+  "engines": {
+    "node": ">=4",
+    "npm": ">=2"
+  }
+}
