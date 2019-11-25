@@ -24,14 +24,15 @@
     "google",
     "assistant"
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bertreb/pimatic-gbridge.git"
   },
   "configSchema": "pimatic-gbridge-config-schema.coffee",
   "dependencies": {
-    "mqtt": ">=2.0.0"
+    "mqtt": ">=2.0.0",
+    "mqtt-wildcard": "^3.0.9"
   },
   "peerDependencies": {
     "pimatic": "0.9.*"
