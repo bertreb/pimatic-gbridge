@@ -33,7 +33,7 @@ module.exports = {
       description: "The used protocolVersion of MQTT"
       type: "number"
       required: true
-      default: 3.1
+      default: 4
     mqttUsername:
       description: "The mqtt hosted server username"
       type: "string"

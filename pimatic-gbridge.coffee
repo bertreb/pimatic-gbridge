@@ -25,7 +25,7 @@ module.exports = (env) ->
           username: @config?.mqttUsername or ""
           password: @config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
-          protocolVersion: @config?.protocolVersion or 3.1
+          protocolVersion: @config?.protocolVersion or 4
           protocolId: @config?.mqttProtocol or configProperties.mqttProtocol.default
           keepalive: 180
           clean: true
@@ -46,7 +46,8 @@ module.exports = (env) ->
       @gbridgeSubscription = @config.gbridgeSubscription
       @mqttBaseTopic = @gbridgePrefix + "/" + @userPrefix + "/#"
 
-      return
+      #return
+      env.logger.info JSON.stringify(@mqttOptions)
 
       @mqttClient = null
       @Connection = new Promise( (resolve, reject) =>
@@ -70,11 +71,11 @@ module.exports = (env) ->
           env.logger.error "Mqtt server error #{error}"
           env.logger.debug error.stack
 
-        @mqttClient.on 'close', () ->
-          env.logger.debug "Connection with MQTT server was closed"
+        @mqttClient.on 'close', (msg) ->
+          env.logger.debug "Connection with MQTT server was closed " + msg
 
         )
-
+      return
       deviceConfigDef = require("./device-config-schema")
       @framework.deviceManager.registerDeviceClass('GbridgeDevice', {
         configDef: deviceConfigDef.GbridgeDevice,
