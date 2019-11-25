@@ -1,6 +1,6 @@
 {
   "name": "pimatic-gbridge",
-  "description": "gBrige gateway for Pimatic home automation system",
+  "description": "gBridge gateway for Pimatic home automation system",
   "author": {
     "name": "Bert Gierveld",
     "email": "gitbertreb@gmail.com",
@@ -24,7 +24,7 @@
     "google",
     "assistant"
   ],
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bertreb/pimatic-gbridge.git"
@@ -32,7 +32,9 @@
   "configSchema": "pimatic-gbridge-config-schema.coffee",
   "dependencies": {
     "mqtt": ">=2.0.0",
-    "mqtt-wildcard": "^3.0.9"
+    "mqtt-wildcard": "^3.0.9",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1"
   },
   "peerDependencies": {
     "pimatic": "0.9.*"

@@ -7,6 +7,11 @@ module.exports = {
       required: true
       type: "string"
       default: ""
+    gbridgeServer:
+      description: "The gBridge api server address"
+      type: "string"
+      default: "https://gbridge.kappelt.net/api/v2"
+      required: true
     gbridgeSubscription:
       description: "The type of subscription; Free (max 4 devices) Standard (unlimited number of devices)"
       required: true
@@ -51,19 +56,6 @@ module.exports = {
       description: "Path to the trusted CA list"
       type: "string"
       default: "/etc/ssl/certs/"
-      required: false
-    gbridgeServer:
-      description: "The gBridge api server address"
-      type: "string"
-      default: "https://gbridge.kappelt.net/api/v2"
-      required: true
-    gbridgeUser:
-      description: "The gbridge username"
-      type: "string"
-      required: false
-    gbridgePassword:
-      description: ""
-      type: "string"
       required: false
     debug:
       description: "Debug mode. Writes debug messages to the pimatic log, if set to true."
