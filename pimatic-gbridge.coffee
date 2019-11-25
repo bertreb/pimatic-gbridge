@@ -25,7 +25,7 @@ module.exports = (env) ->
           username: @config?.mqttUsername or ""
           password: @config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
-          protocolVersion: 4 #options.protocolVersion
+          protocolVersion: @config?.protocolVersion or "3.1"
           protocolId: @config?.mqttProtocol or configProperties.mqttProtocol.default
           keepalive: 180
           clean: true

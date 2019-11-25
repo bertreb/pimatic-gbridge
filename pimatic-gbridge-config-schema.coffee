@@ -27,8 +27,13 @@ module.exports = {
       description: "The used protocol for hosted MQTT server. MQTT (default) or MQTTS (with cert,key and ca)"
       type: "string"
       required: true
-      enum:["MQTT", "MQTTS"]
-      default: "MQTT"
+      enum:["mqtt", "mqtts"]
+      default: "mqtt"
+    mqttProtocolVersion:
+      description: "The used protocolVersion of MQTT"
+      type: "string"
+      required: true
+      default: "3.1"
     mqttUsername:
       description: "The mqtt hosted server username"
       type: "string"
