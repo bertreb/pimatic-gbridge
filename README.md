@@ -17,7 +17,7 @@ Options to configure in the plugin settings:
   gbridgeApiKey:        "The apikey to get an access_token"
   gbridgeSubscription:  "The type of subscription; Free (max 4 devices) Standard (unlimited number of devices)"
   mqttServer:           "Hosted gBridge servername" (default mqtt.gbridge.io)
-  mqttProtocol:         "The used protocol for hosted MQTT server. MQTT (default) or MQTTS (with cert,key and ca)" default "MQTT"
+  mqttProtocol:         "The used protocol for hosted MQTT server. MQTT (default) or MQTTS (with cert,key and ca)"
   mqttUsername:         "The mqtt hosted server username"
   mqttPassword:         "The mqtt hosted server password"
   mqttBaseTopic:        "gBridge/u{user_id}/" not changable in free plan
