@@ -15,7 +15,7 @@ To enable the Gbridge plugin add this to the plugins section via the GUI or add 
 
 Options to configure in the plugin settings:
   gbridgeApiKey:        "The apikey to get an access_token"
-  gbridgeSubscription:  "The type of subscription; Free (max 4 devices) Standard (unlimited number of devices)"
+  gbridgeSubscription:  "The type of subscription; Free (max 4 devices) Standard or (unlimited number of devices)"
   mqttServer:           "Hosted gBridge servername" (default mqtt.gbridge.io)
   mqttProtocol:         "The used protocol for hosted MQTT server. MQTT (default) or MQTTS"
   mqttUsername:         "The mqtt hosted server username"
