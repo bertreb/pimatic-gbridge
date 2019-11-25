@@ -17,7 +17,7 @@ Options to configure in the plugin settings:
   gbridgeApiKey:        "The apikey to get an access_token"
   gbridgeSubscription:  "The type of subscription; Free (max 4 devices) Standard (unlimited number of devices)"
   mqttServer:           "Hosted gBridge servername" (default mqtt.gbridge.io)
-  mqttProtocol:         "The used protocol for hosted MQTT server. MQTT (default) or MQTTS (with cert,key and ca)"
+  mqttProtocol:         "The used protocol for hosted MQTT server. MQTT (default) or MQTTS"
   mqttUsername:         "The mqtt hosted server username"
   mqttPassword:         "The mqtt hosted server password"
   mqttBaseTopic:        "gBridge/u{user_id}/" not changable in free plan
@@ -48,7 +48,7 @@ Below the settings with the default values. In the devices your confure which Pi
           pimatic_device_id: "the pimatic device ID"
           gbridge_device_id: "The gbrigde device ID. Is automatically added"
           twofa:             "Two-step confirmation or PIN-Code verification"
-                              ["none", "ack","pin"] default: "none"
+                              ["none", "ack", "pin"] default: "none"
           twofaPin:           "PIN code for two step authorization. The PIN code is a 4 to 8 digit number"
 }
 ```
