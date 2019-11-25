@@ -46,7 +46,6 @@ module.exports = (env) ->
       @gbridgeSubscription = @config.gbridgeSubscription
       @mqttBaseTopic = @gbridgePrefix + "/" + @userPrefix + "/#"
 
-      #return
       env.logger.info JSON.stringify(@mqttOptions)
 
       @mqttClient = null
@@ -75,7 +74,7 @@ module.exports = (env) ->
           env.logger.debug "Connection with MQTT server was closed " + msg
 
         )
-      return
+
       deviceConfigDef = require("./device-config-schema")
       @framework.deviceManager.registerDeviceClass('GbridgeDevice', {
         configDef: deviceConfigDef.GbridgeDevice,
