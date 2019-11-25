@@ -18,7 +18,7 @@ module.exports = (env) ->
       configProperties = pluginConfigDef.properties
       @gbridgePrefix = "gBridge"
       @userPrefix = (@config?.mqttUsername).split("-")[1] or ""# the second part of mqtt username with 'u'
-
+      @debug = @config?.debug or false
       @mqttOptions =
           host: @config?.mqttServer or configProperties.mqttServer.default
           port: 1883
@@ -120,6 +120,7 @@ module.exports = (env) ->
         @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err) =>
           if !(err)
             env.logger.debug "Mqtt subscribed to gBridge"
+            if @debug then env.logger.info "Mqtt subscribed to gBridge"
             @emit "mqttConnected"
           else
             @emit "error", err
@@ -127,7 +128,7 @@ module.exports = (env) ->
 
       @gbridgeConnector.on 'gbridgeConnected', =>
         env.logger.debug "gbridge connected"
-
+        if @debug then env.logger.info "gbridge connected"
         @framework.variableManager.waitForInit()
         .then () =>
           @addAdapters()
@@ -140,6 +141,7 @@ module.exports = (env) ->
               @syncDevices()
               .then () =>
                 @inited = true
+                if @debug then env.logger.info "connectors active"
               .catch (err) =>
                 env.logger.error "Error suncing devices: " + err
             .catch (err) =>
@@ -160,7 +162,7 @@ module.exports = (env) ->
         _value = String message #JSON.parse(message)
 
         env.logger.debug "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
-
+        if @debug then env.logger.info env.logger.info "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
         switch String message
           when "EXECUTE"
             # do nothing
