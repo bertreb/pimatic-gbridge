@@ -25,15 +25,15 @@ module.exports = (env) ->
           username: @config?.mqttUsername or ""
           password: @config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
-          protocolVersion: @config?.protocolVersion or "3.1"
+          protocolVersion: @config?.protocolVersion or 3.1
           protocolId: @config?.mqttProtocol or configProperties.mqttProtocol.default
           keepalive: 180
           clean: true
           rejectUnauthorized: false
-      if @config.protocol is "mqtts"
-        @mqttOptions.protocolId = "mqtts"
+      if @config.protocol is "MQTTS"
+        @mqttOptions.protocolId = "MQTTS"
         @mqttOptions.host = "mqtts://" + options.url
-        @mqttOptions.port = @config?.securePort or configProperties.securePort.default
+        @mqttOptions.port = 8883
         @mqttOptions["key"] = @config?.certPath or configProperties.certPath.default
         @mqttOptions["cert"] = @config?.keyPath or configProperties.keyPath.default
         @mqttOptions["ca"] = @config?.caPath or configProperties.caPath.default
@@ -46,7 +46,6 @@ module.exports = (env) ->
       @gbridgeSubscription = @config.gbridgeSubscription
       @mqttBaseTopic = @gbridgePrefix + "/" + @userPrefix + "/#"
 
-      return
       @mqttClient = null
       @Connection = new Promise( (resolve, reject) =>
         @mqttClient = new mqtt.connect(@mqttOptions)
