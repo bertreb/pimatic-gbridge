@@ -50,29 +50,6 @@ module.exports = (env) ->
 
       env.logger.info JSON.stringify(@mqttOptions)
 
-      @mqttClient = null
-      
-      try
-        @mqttClient = new mqtt.connect(@mqttOptions)
-      catch err
-        env.logger.error "Can not connect to MQTT server: " + err
-
-      @mqttClient.on "connect", () =>
-        env.logger.debug "Successfully connected to MQTT server"
-
-      @mqttClient.on 'reconnect', () =>
-        env.logger.debug "Reconnecting to MQTT server"
-
-      @mqttClient.on 'offline', () =>
-        env.logger.debug "MQTT server is offline"
-
-      @mqttClient.on 'error', (error) ->
-        env.logger.error "Mqtt server error #{error}"
-        env.logger.debug error.stack
-
-      @mqttClient.on 'close', () ->
-        env.logger.debug "Connection with MQTT server was closed "
-
       deviceConfigDef = require("./device-config-schema")
       @framework.deviceManager.registerDeviceClass('GbridgeDevice', {
         configDef: deviceConfigDef.GbridgeDevice,
@@ -91,6 +68,7 @@ module.exports = (env) ->
 
       @inited = false
 
+      @mqttConnector = null
       @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
       @mqttConnector = @plugin.mqttClient
 
@@ -116,15 +94,26 @@ module.exports = (env) ->
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
 
-      @framework.on 'after init', =>
-        @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err) =>
-          if !(err)
-            env.logger.debug "Mqtt subscribed to gBridge"
-            if @debug then env.logger.info "Mqtt subscribed to gBridge"
-            @emit "mqttConnected"
-          else
-            @emit "error", err
-        )
+      #@framework.on 'after init', =>
+      @mqttConnector = new mqtt.connect(@plugin.mqttOptions)
+
+      @mqttConnector.on "connect", () =>
+        env.logger.debug "Successfully connected to MQTT server"
+
+      @mqttConnector.on 'reconnect', () =>
+        env.logger.debug "Reconnecting to MQTT server"
+
+      @mqttConnector.on 'offline', () =>
+        env.logger.debug "MQTT server is offline"
+
+      @mqttConnector.on 'error', (error) ->
+        env.logger.error "Mqtt server error #{error}"
+        env.logger.debug error.stack
+
+      @mqttConnector.on 'close', () ->
+        env.logger.debug "Connection with MQTT server was closed "
+
+
 
       @gbridgeConnector.on 'gbridgeConnected', =>
         env.logger.debug "gbridge connected"
@@ -141,6 +130,13 @@ module.exports = (env) ->
               @syncDevices()
               .then () =>
                 @inited = true
+                @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err) =>
+                  if !(err)
+                    env.logger.debug "Mqtt subscribed to gBridge"
+                    if @debug then env.logger.info "Mqtt subscribed to gBridge"
+                  else
+                    env.logger.error "Mqtt subscribe error " + err
+                )
                 if @debug then env.logger.info "connectors active"
               .catch (err) =>
                 env.logger.error "Error suncing devices: " + err
@@ -206,7 +202,7 @@ module.exports = (env) ->
           @config.devices[key].gbridge_device_id = 0 unless _value.pimatic_device_id?
 
           _adapterConfig =
-            mqttConnector: @plugin.mqttClient
+            mqttConnector: @mqttConnector
             pimaticDevice: pimaticDevice
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
