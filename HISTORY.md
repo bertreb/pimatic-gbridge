@@ -2,5 +2,5 @@
 
 * 20191113, v0.0.1
 	* initial release
-* 20191126, v0.1.12
+* 20191126, v0.1.13
 	* fix mqtt options and move handling to device

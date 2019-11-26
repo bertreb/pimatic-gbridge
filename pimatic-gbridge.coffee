@@ -15,18 +15,18 @@ module.exports = (env) ->
     init: (app, @framework, @config) =>
 
       pluginConfigDef = require './pimatic-gbridge-config-schema'
-      configProperties = pluginConfigDef.properties
+      @configProperties = pluginConfigDef.properties
       @gbridgePrefix = "gBridge"
       @userPrefix = (@config?.mqttUsername).split("-")[1] or ""# the second part of mqtt username with 'u'
       @debug = @config?.debug or false
       @mqttOptions =
-          host: @config?.mqttServer or configProperties.mqttServer.default
+          host: @config?.mqttServer or @configProperties.mqttServer.default
           port: 1883
           username: @config?.mqttUsername or ""
           password: @config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
           protocolVersion: @config?.mqttProtocolVersion or 4
-          protocolId: @config?.mqttProtocol or configProperties.mqttProtocol.default
+          protocolId: @config?.mqttProtocol or @configProperties.mqttProtocol.default
           queueQoSZero: true
           keepalive: 180
           clean: true
@@ -37,13 +37,13 @@ module.exports = (env) ->
         @mqttOptions.protocolId = "MQTTS"
         @mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
-        @mqttOptions["keyPath"] = @config?.certPath or configProperties.certPath.default
-        @mqttOptions["certPath"] = @config?.keyPath or configProperties.keyPath.default
-        @mqttOptions["ca"] = @config?.caPath or configProperties.caPath.default
+        @mqttOptions["keyPath"] = @config?.certPath or @configProperties.certPath.default
+        @mqttOptions["certPath"] = @config?.keyPath or @configProperties.keyPath.default
+        @mqttOptions["ca"] = @config?.caPath or @configProperties.caPath.default
 
       @gbridgeOptions =
-        subscription: @config?.gbridgeSubscription or configProperties.gbridgeSubscription.default
-        server: @config?.gbridgeServer or configProperties.gbridgeServer.default
+        subscription: @config?.gbridgeSubscription or @configProperties.gbridgeSubscription.default
+        server: @config?.gbridgeServer or @configProperties.gbridgeServer.default
         apiKey: @config?.gbridgeApiKey or ""
 
       @gbridgeSubscription = @config.gbridgeSubscription
@@ -68,6 +68,28 @@ module.exports = (env) ->
       @adapters = {}
 
       @inited = false
+
+      @mqttOptions =
+          host: @plugin.config?.mqttServer or @plugin.configProperties.mqttServer.default
+          port: 1883
+          username: @plugin.config?.mqttUsername or ""
+          password: @plugin.config?.mqttPassword or ""
+          clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
+          protocolVersion: @config?.mqttProtocolVersion or 4
+          protocolId: @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
+          queueQoSZero: true
+          keepalive: 180
+          clean: true
+          rejectUnauthorized: false
+          reconnectPeriod: 15000
+          debug: @config?.debug or false
+      if @config.mqttProtocol is "MQTTS"
+        @mqttOptions.protocolId = "MQTTS"
+        @mqttOptions.host = "mqtts://" + @mqttOptions.host
+        @mqttOptions.port = 8883
+        @mqttOptions["keyPath"] = @config?.certPath or @plugin.configProperties.certPath.default
+        @mqttOptions["certPath"] = @config?.keyPath or @plugin.configProperties.keyPath.default
+        @mqttOptions["ca"] = @config?.caPath or @plugin.configProperties.caPath.default
 
       @mqttConnector = null
       @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
@@ -96,7 +118,7 @@ module.exports = (env) ->
         throw new Error "Your subscription allows max 4 devices"
 
       #@framework.on 'after init', =>
-      @mqttConnector = new mqtt.connect(@plugin.mqttOptions)
+      @mqttConnector = new mqtt.connect(@mqttOptions)
 
       @mqttConnector.on "connect", () =>
         env.logger.debug "Successfully connected to MQTT server"
