@@ -34,6 +34,9 @@ module.exports = (env) ->
         when 'onoff'
           env.logger.debug "Execute action for device " + @device.id + ", set state: " + value
           @device.changeStateTo(Boolean value>0)
+        when 'requestsync'
+          env.logger.debug "Requestsync -> publish state for device " + @device.id + ", set state: " + value
+          @publishState()
         else
           env.logger.error "Unknown action '#{type}'"
 

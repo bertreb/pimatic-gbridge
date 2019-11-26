@@ -44,6 +44,11 @@ module.exports = (env) ->
         when 'brightness'
           env.logger.debug "Execute action for device " + @device.id + ", set state: " + value
           @device.changeDimlevelTo(value)
+        when 'scene'
+          env.logger.debug "Scene not implemented for device " + @device.id + ", set state: " + value
+        when 'requestsync'
+          env.logger.debug "Requestsync -> publish state for device " + @device.id + ", set state: " + value
+          @publishState()
         else
           env.logger.error "Unknown action '#{type}'"
 
