@@ -33,7 +33,7 @@ module.exports = (env) ->
           rejectUnauthorized: false
           reconnectPeriod: 15000
           debug: @config?.debug or false
-      if String @config.mqttProtocol == "MQTTS"
+      if @config.mqttProtocol == "MQTTS"
         @mqttOptions.protocolId = "MQTTS"
         @mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
@@ -84,14 +84,17 @@ module.exports = (env) ->
           clean: true
           rejectUnauthorized: false
           reconnectPeriod: 15000
-          debug: @config?.debug or false
-      if @config.mqttProtocol is "MQTTS"
+          debug: @plugin.config?.debug or false
+      ###
+      if @config.mqttProtocol == "MQTTS"
         @mqttOptions.protocolId = "MQTTS"
+        @mqttOptions.protocol = "mqtts"
         @mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
         @mqttOptions["keyPath"] = @config?.certPath or @plugin.configProperties.certPath.default
         @mqttOptions["certPath"] = @config?.keyPath or @plugin.configProperties.keyPath.default
         @mqttOptions["ca"] = @config?.caPath or @plugin.configProperties.caPath.default
+      ###
 
       env.logger.debug "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
       if @debug then env.logger.info "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
@@ -127,6 +130,14 @@ module.exports = (env) ->
 
       @mqttConnector.on "connect", () =>
         env.logger.debug "Successfully connected to MQTT server"
+        @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err,granted) =>
+          if granted?
+            env.logger.debug "Mqtt subscribed to gBridge"
+            if @debug then env.logger.info "Mqtt subscribed to gBridge: " + JSON.stringify(granted)
+          if err?
+            env.logger.error "Mqtt subscribe error " + err
+        )
+        if @debug and @inited then env.logger.info "connectors active"
 
       @mqttConnector.on 'reconnect', () =>
         env.logger.debug "Reconnecting to MQTT server"
@@ -140,8 +151,6 @@ module.exports = (env) ->
 
       @mqttConnector.on 'close', () ->
         env.logger.debug "Connection with MQTT server was closed "
-
-
 
       @gbridgeConnector.on 'gbridgeConnected', =>
         env.logger.debug "gbridge connected"
@@ -158,14 +167,6 @@ module.exports = (env) ->
               @syncDevices()
               .then () =>
                 @inited = true
-                @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err) =>
-                  if !(err)
-                    env.logger.debug "Mqtt subscribed to gBridge"
-                    if @debug then env.logger.info "Mqtt subscribed to gBridge"
-                  else
-                    env.logger.error "Mqtt subscribe error " + err
-                )
-                if @debug then env.logger.info "connectors active"
               .catch (err) =>
                 env.logger.error "Error suncing devices: " + err
             .catch (err) =>
@@ -318,6 +319,8 @@ module.exports = (env) ->
       return false
 
     destroy: ->
+      for adapter of @adapters
+        delete adapters
       @mqttConnector.removeAllListeners()
       @gbridgeConnector.removeAllListeners()
       @.removeAllListeners()

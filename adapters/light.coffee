@@ -2,13 +2,13 @@ module.exports = (env) ->
   Promise = env.require 'bluebird'
   assert = env.require 'cassert'
   events = require 'events'
-  
+
   class LightAdapter extends events.EventEmitter
-    
+
     constructor: (adapterConfig) ->
 
       @device = adapterConfig.pimaticDevice
-      @topicPrefix = adapterConfig.mqttPrefix 
+      @topicPrefix = adapterConfig.mqttPrefix
       @topicUser = adapterConfig.mqttUser
       @gbridgeDeviceId = Number adapterConfig.gbridgeDeviceId
       @mqttConnector = adapterConfig.mqttConnector
@@ -20,12 +20,14 @@ module.exports = (env) ->
       @device.on 'dimlevel', deviceDimlevelHandler
       @device.system = @
 
+      @publishState()
+
     deviceStateHandler = (state) ->
       # device status chaged, updating device status in gBridge
       _mqttHeader = @system.getTopic() + '/onoff/set'
       env.logger.debug "Device state change, publish state: mqttHeader: " + _mqttHeader + ", state: " + state
       @system.mqttConnector.publish(_mqttHeader, String state)
-  
+
     deviceDimlevelHandler = (dimlevel) ->
       # device status changed, updating device status in gBridge
       _mqttHeader = @system.getTopic() + '/brightness/set'
@@ -49,10 +51,10 @@ module.exports = (env) ->
       _mqttHeader1 = @getTopic() + '/onoff/set'
       @device.getState().then((state) =>
         env.logger.debug "Publish state, mqttHeader: " + _mqttHeader1 + ", state: " + state
-        #@mqttConnector.publish(_mqttHeader1, String state)
+        @mqttConnector.publish(_mqttHeader1, String state)
       ).catch((err) =>
         env.logger.error "STATE:" + err.message
-      ) 
+      )
       _mqttHeader2 = @getTopic() + '/brightness/set'
       @device.getDimlevel().then((dimlevel) =>
         env.logger.debug "Publish dimlevel, mqttHeader: " + _mqttHeader2 + ", dimlevel: " + dimlevel
@@ -60,7 +62,7 @@ module.exports = (env) ->
       ).catch((err) =>
         env.logger.error "DIMLEVEL: " + err.message
       )
- 
+
     getTopic: () =>
       _topic = @topicPrefix + "/" + @topicUser + "/d" + @gbridgeDeviceId
       return _topic
@@ -77,7 +79,7 @@ module.exports = (env) ->
       return traits
 
     getTwoFa: () =>
-      _twoFa = 
+      _twoFa =
         used: false
       if @twoFa? and @twoFaPin?
         switch @twoFa
@@ -97,6 +99,3 @@ module.exports = (env) ->
     destroy: ->
       @device.removeListener 'state', deviceHandler
       @device.removeListener 'dimlevel', deviceHandler
-
-
-

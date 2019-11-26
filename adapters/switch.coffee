@@ -2,13 +2,13 @@ module.exports = (env) ->
   Promise = env.require 'bluebird'
   assert = env.require 'cassert'
   events = require 'events'
-  
+
   class SwitchAdapter extends events.EventEmitter
-    
+
     constructor: (adapterConfig) ->
 
       @device = adapterConfig.pimaticDevice
-      @topicPrefix = adapterConfig.mqttPrefix 
+      @topicPrefix = adapterConfig.mqttPrefix
       @topicUser = adapterConfig.mqttUser
       @gbridgeDeviceId = Number adapterConfig.gbridgeDeviceId
       @mqttConnector = adapterConfig.mqttConnector
@@ -19,8 +19,10 @@ module.exports = (env) ->
       @device.on "state", deviceStateHandler
       @device.system = @
 
+      @publishState()
+
     deviceStateHandler = (state) ->
-      # device status chaged, updating device status in gBridge
+      # device status changed, updating device status in gBridge
       _mqttHeader = @system.getTopic() + '/onoff/set'
       env.logger.debug "Device state change, publish state: mqttHeader: " + _mqttHeader + ", state: " + state
       @system.mqttConnector.publish(_mqttHeader, String state)
@@ -43,7 +45,7 @@ module.exports = (env) ->
       ).catch((err) =>
         env.logger.error "STATE:" + err.message
       )
- 
+
     getTopic: () =>
       _topic = @topicPrefix + "/" + @topicUser + "/d" + @gbridgeDeviceId
       return _topic
@@ -58,7 +60,7 @@ module.exports = (env) ->
       return traits
 
     getTwoFa: () =>
-      _twoFa = 
+      _twoFa =
         used: false
       if @twoFa? and @twoFaPin?
         switch @twoFa
@@ -77,6 +79,3 @@ module.exports = (env) ->
 
     destroy: ->
       @device.removeListener "state", deviceStateHandler
-
-
-
