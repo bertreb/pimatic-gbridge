@@ -31,7 +31,7 @@ module.exports = {
       default: "MQTT"
     mqttProtocolVersion:
       description: "The used protocolVersion of MQTT"
-      type: "number"
+      type: "integer"
       required: true
       default: 4
     mqttUsername:
@@ -41,11 +41,6 @@ module.exports = {
     mqttPassword:
       description: "The mqtt hosted server password"
       type: "string"
-      required: true
-    mqttBaseTopic:
-      description: ""
-      type: "string"
-      default: "gBridge/u{user_id}/"
       required: true
     certPath:
       description: "Path to the certificate of the client in PEM format, required for the TLS connection"

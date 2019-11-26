@@ -25,16 +25,17 @@ module.exports = (env) ->
           username: @config?.mqttUsername or ""
           password: @config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
-          protocolVersion: @config?.protocolVersion or 4
+          protocolVersion: @config?.mqttProtocolVersion or 4
           protocolId: @config?.mqttProtocol or configProperties.mqttProtocol.default
           queueQoSZero: true
           keepalive: 180
           clean: true
           rejectUnauthorized: false
-          debug: @config.debug
-      if @config.protocol is "MQTTS"
+          reconnectPeriod: 15000
+          debug: @config?.debug or false
+      if @config.mqttProtocol is "MQTTS"
         @mqttOptions.protocolId = "MQTTS"
-        @mqttOptions.host = "mqtts://" + options.url
+        @mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
         @mqttOptions["keyPath"] = @config?.certPath or configProperties.certPath.default
         @mqttOptions["certPath"] = @config?.keyPath or configProperties.keyPath.default
