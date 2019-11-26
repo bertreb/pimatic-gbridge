@@ -33,7 +33,7 @@ module.exports = (env) ->
           rejectUnauthorized: false
           reconnectPeriod: 15000
           debug: @config?.debug or false
-      if @config.mqttProtocol is "MQTTS"
+      if String @config.mqttProtocol == "MQTTS"
         @mqttOptions.protocolId = "MQTTS"
         @mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
@@ -67,6 +67,8 @@ module.exports = (env) ->
       @gbridgeDevices = []
       @adapters = {}
 
+      @debug = @plugin.debug
+
       @inited = false
 
       @mqttOptions =
@@ -90,6 +92,9 @@ module.exports = (env) ->
         @mqttOptions["keyPath"] = @config?.certPath or @plugin.configProperties.certPath.default
         @mqttOptions["certPath"] = @config?.keyPath or @plugin.configProperties.keyPath.default
         @mqttOptions["ca"] = @config?.caPath or @plugin.configProperties.caPath.default
+
+      env.logger.debug "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
+      if @debug then env.logger.info "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
 
       @mqttConnector = null
       @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
