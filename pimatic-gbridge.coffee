@@ -27,15 +27,17 @@ module.exports = (env) ->
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
           protocolVersion: @config?.protocolVersion or 4
           protocolId: @config?.mqttProtocol or configProperties.mqttProtocol.default
+          queueQoSZero: true
           keepalive: 180
           clean: true
           rejectUnauthorized: false
+          debug: @config.debug
       if @config.protocol is "MQTTS"
         @mqttOptions.protocolId = "MQTTS"
         @mqttOptions.host = "mqtts://" + options.url
         @mqttOptions.port = 8883
-        @mqttOptions["key"] = @config?.certPath or configProperties.certPath.default
-        @mqttOptions["cert"] = @config?.keyPath or configProperties.keyPath.default
+        @mqttOptions["keyPath"] = @config?.certPath or configProperties.certPath.default
+        @mqttOptions["certPath"] = @config?.keyPath or configProperties.keyPath.default
         @mqttOptions["ca"] = @config?.caPath or configProperties.caPath.default
 
       @gbridgeOptions =
@@ -49,31 +51,27 @@ module.exports = (env) ->
       env.logger.info JSON.stringify(@mqttOptions)
 
       @mqttClient = null
-      @Connection = new Promise( (resolve, reject) =>
+      
+      try
         @mqttClient = new mqtt.connect(@mqttOptions)
-        @mqttClient.on("connect", () =>
-          resolve()
-        )
+      catch err
+        env.logger.error "Can not connect to MQTT server: " + err
 
-        @mqttClient.on('error', reject)
+      @mqttClient.on "connect", () =>
+        env.logger.debug "Successfully connected to MQTT server"
 
-        @mqttClient.on "connect", () =>
-          env.logger.debug "Successfully connected to MQTT server"
+      @mqttClient.on 'reconnect', () =>
+        env.logger.debug "Reconnecting to MQTT server"
 
-        @mqttClient.on 'reconnect', () =>
-          env.logger.debug "Reconnecting to MQTT server"
+      @mqttClient.on 'offline', () =>
+        env.logger.debug "MQTT server is offline"
 
-        @mqttClient.on 'offline', () =>
-          env.logger.debug "MQTT server is offline"
+      @mqttClient.on 'error', (error) ->
+        env.logger.error "Mqtt server error #{error}"
+        env.logger.debug error.stack
 
-        @mqttClient.on 'error', (error) ->
-          env.logger.error "Mqtt server error #{error}"
-          env.logger.debug error.stack
-
-        @mqttClient.on 'close', (msg) ->
-          env.logger.debug "Connection with MQTT server was closed " + msg
-
-        )
+      @mqttClient.on 'close', () ->
+        env.logger.debug "Connection with MQTT server was closed "
 
       deviceConfigDef = require("./device-config-schema")
       @framework.deviceManager.registerDeviceClass('GbridgeDevice', {
