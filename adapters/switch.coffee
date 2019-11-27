@@ -49,6 +49,9 @@ module.exports = (env) ->
         env.logger.error "STATE:" + err.message
       )
 
+    setGbridgeDeviceId: (deviceId) =>
+      @gbridgeDeviceId = deviceId
+
     getTopic: () =>
       _topic = @topicPrefix + "/" + @topicUser + "/d" + @gbridgeDeviceId
       return _topic
@@ -75,10 +78,6 @@ module.exports = (env) ->
             _twoFa["method"] = "pin"
             _twoFa["pin"] = @twoFaPin
       return _twoFa
-
-
-    deviceEventType: () ->
-      return 'state'
 
     destroy: ->
       @device.removeListener "state", deviceStateHandler

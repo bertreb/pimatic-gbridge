@@ -68,6 +68,9 @@ module.exports = (env) ->
         env.logger.error "DIMLEVEL: " + err.message
       )
 
+    setGbridgeDeviceId: (deviceId) =>
+      @gbridgeDeviceId = deviceId
+
     getTopic: () =>
       _topic = @topicPrefix + "/" + @topicUser + "/d" + @gbridgeDeviceId
       return _topic
@@ -78,8 +81,8 @@ module.exports = (env) ->
     getTraits: () ->
       traits = [
         {'type' : 'Brightness'},
-        {'type' : 'OnOff'},
-        {'type' : 'Scene'}
+        {'type' : 'OnOff'} #,
+        #{'type' : 'Scene'}
       ]
       return traits
 
@@ -96,10 +99,6 @@ module.exports = (env) ->
             _twoFa["method"] = "pin"
             _twoFa["pin"] = @twoFaPin
       return _twoFa
-
-
-    #deviceEventType: () ->
-    #  return ['dimlevel','state']
 
     destroy: ->
       @device.removeListener 'state', deviceHandler

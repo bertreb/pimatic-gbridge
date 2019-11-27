@@ -27,8 +27,6 @@ module.exports = (env) ->
       @gbridgeSubscription = @config.gbridgeSubscription
       @mqttBaseTopic = @gbridgePrefix + "/" + @userPrefix + "/#"
 
-      env.logger.info JSON.stringify(@mqttOptions)
-
       deviceConfigDef = require("./device-config-schema")
       @framework.deviceManager.registerDeviceClass('GbridgeDevice', {
         configDef: deviceConfigDef.GbridgeDevice,
@@ -37,9 +35,11 @@ module.exports = (env) ->
 
   class GbridgeDevice extends env.devices.Device
 
-    constructor: (@config, lastState, @framework, @plugin) ->
+    constructor: (config, lastState, @framework, @plugin) ->
+      @config = config
       @id = @config.id
       @name = @config.name
+      @config.devices = config.devices
 
       @devMgr = @framework.deviceManager
       @gbridgeDevices = []
@@ -75,25 +75,30 @@ module.exports = (env) ->
         @mqttOptions.protocolId = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 
       checkMultipleDevices = []
-      for _device in @config.devices
-        do(_device) =>
-          device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
-          if device instanceof env.devices.DimmerActuator
-            #device type implemented
-          else if device instanceof env.devices.SwitchActuator
-            #device type implemented
-          else if device instanceof env.devices.HeatingThermostat
-            throw new Error "Device type HeatingThermostat not implemented"
-          else if device instanceof env.devices.ShutterController
-            throw new Error "Device type ShutterController not implemented"
-          else if not device?
-            throw new Error "Device #{_device.pimatic_device_id} does not exist"
-          else
-            throw new Error "Device type does not exist"
-          if _.indexOf(checkMultipleDevices, String _device.pimatic_device_id) > -1
-            throw new Error "#{device.id} is already used"
-          else
-            checkMultipleDevices.push String _device.pimatic_device_id
+      @framework.variableManager.waitForInit()
+      .then () =>
+        for _device in @config.devices
+          do(_device) =>
+            try
+              device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
+              if device instanceof env.devices.DimmerActuator
+                #device type implemented
+              else if device instanceof env.devices.SwitchActuator
+                #device type implemented
+              else if device instanceof env.devices.HeatingThermostat
+                throw new Error "Device type HeatingThermostat not implemented"
+              else if device instanceof env.devices.ShutterController
+                throw new Error "Device type ShutterController not implemented"
+              else
+                throw new Error "Device type does not exist"
+              if _.indexOf(checkMultipleDevices, String _device.pimatic_device_id) > -1
+                throw new Error "#{device.id} is already used"
+              else
+                checkMultipleDevices.push String _device.pimatic_device_id
+            catch err
+              throw new Error "Device #{_device.pimatic_device_id} does not exist, please remove from config"
+      .catch (err) =>
+        env.logger.error "Something is wrong: " + err
 
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
@@ -156,7 +161,6 @@ module.exports = (env) ->
         @_connectionStatus("gbridgeDisconnected")
 
       @mqttConnector.on 'message', (topic, message, packet) =>
-
         _info = (String topic).split('/') #Tomatch(topic, @baseTopic)?
         _gBridgePrefix = _info[0]
         _userPrefix = _info[1]
@@ -185,6 +189,15 @@ module.exports = (env) ->
                 env.logger.debug "/set received for gbridge device #{_device_id}, no action"
               else
                 adapter.executeAction(_trait, _value)
+
+      @framework.on "deviceRemoved", (device) =>
+        for _device in @config.devices
+          if _device.pimatic_device_id == device.id
+            env.logger.info "please remove also device in gBridge!"
+            # delete device in gBridge
+            # delete adapter
+            # delete device-item this device
+
 
       super()
 
@@ -278,11 +291,11 @@ module.exports = (env) ->
             .then (device) =>
               env.logger.debug "config.device to be updated with gbridge.device_id: " + device.id
               for _value, key in @config.devices
+                env.logger.info "_value: " + _value + ", key: " + key
                 if _value.name is device.name
                   #update all 2 configs
                   @config.devices[key]["gbridge_device_id"] = device.id
-                  @adapters[_value.pimatic_device_id]["gbridge_device_id"] = device.id
-                  env.logger.debug "config.device and @adapters updated with gbridge.device_id: " + device.id
+                  @adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
             .catch (err) =>
               env.logger.error "Error: updating gbridge_device_id: " + err
               reject()
@@ -291,9 +304,9 @@ module.exports = (env) ->
             env.logger.debug "GbridgeDevice: '" + _deviceRemove.name + "' not found in Config, removing from gBridge"
             @gbridgeConnector.removeDevice(_deviceRemove)
             .then () =>
-              env.logger.debug "Device #{_device.name} removed from gBridge"
+              env.logger.debug "Device #{_deviceRemove.name} removed from gBridge"
             .catch (err) =>
-              env.logger.error "Error: device #{_device.name} not removed from gBridge, " + err
+              env.logger.error "Error: device #{_deviceRemove.name} not removed from gBridge, " + err
               reject()
 
           env.logger.debug "gBridge and Devices synced"

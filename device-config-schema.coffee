@@ -28,7 +28,7 @@ module.exports = {
               default: 0
             twofa:
               description: "Two-step confirmation or PIN-Code verification"
-              enum: ["none", "ack","pin"]
+              enum: ["none", "ack", "pin"]
               required: false
               default: "none"
             twofaPin:
@@ -39,7 +39,7 @@ module.exports = {
         description: "The used protocol for hosted MQTT server. MQTT (default) or MQTTS (with cert,key and ca)"
         type: "string"
         required: true
-        enum:["MQTT"] #, "MQTTS"]
+        enum:["MQTT", "MQTTS"]
         default: "MQTT"
       mqttProtocolVersion:
         description: "The used protocolVersion of MQTT"
