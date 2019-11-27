@@ -118,12 +118,12 @@ module.exports = (env) ->
         env.logger.debug "MQTT server is offline"
         @_connectionStatus("mqttDisconnected")
 
-      @mqttConnector.on 'error', (error) ->
+      @mqttConnector.on 'error', (error) =>
         env.logger.error "Mqtt server error #{error}"
         env.logger.debug error.stack
         @_connectionStatus("mqttDisconnected")
 
-      @mqttConnector.on 'close', () ->
+      @mqttConnector.on 'close', () =>
         env.logger.debug "Connection with MQTT server was closed "
         @_connectionStatus("mqttDisconnected")
 
