@@ -7,3 +7,4 @@
 * 20191127, v0.1.17
 	* fix mqtt options
 	* improve on adding device
+	* add device debug

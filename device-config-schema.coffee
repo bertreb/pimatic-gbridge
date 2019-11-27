@@ -61,5 +61,9 @@ module.exports = {
         type: "string"
         default: "/etc/ssl/certs/"
         required: false
+      debug:
+        description: "If enabled writes debug messages to screen."
+        type: "boolean"
+        default: false
   }
 }

@@ -45,7 +45,7 @@ module.exports = (env) ->
       @gbridgeDevices = []
       @adapters = {}
 
-      @debug = @plugin.debug
+      @debug = @config?.debug or false
 
       @inited = false
 
@@ -143,6 +143,7 @@ module.exports = (env) ->
             @gbridgeConnector.getDevices()
             .then (devices) =>
               env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
+              if @debug then env.logger.info "gbridge devices received, devices: " + JSON.stringify(devices)
               @gbridgeDevices = devices
               @syncDevices()
               .then () =>
@@ -167,7 +168,7 @@ module.exports = (env) ->
         _value = String message #JSON.parse(message)
 
         env.logger.debug "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
-        if @debug then env.logger.info env.logger.info "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
+        if @debug then env.logger.info "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
         switch String message
           when "EXECUTE"
             # do nothing
@@ -248,6 +249,9 @@ module.exports = (env) ->
 
           env.logger.debug "gbridgeAdditions: " + JSON.stringify(gbridgeAdditions)
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
+          if @debug
+            env.logger.info "gbridgeAdditions: " + JSON.stringify(gbridgeAdditions)
+            env.logger.info "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
           for _device in gbridgeAdditions
             adapter = @getAdapter(_device.pimatic_device_id)
             unless adapter?
