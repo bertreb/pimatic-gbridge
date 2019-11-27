@@ -47,7 +47,8 @@ module.exports = (env) ->
 
       @debug = @config?.debug or false
 
-      @inited = false
+      @_gbridgeConnected = false
+      @_mqttConnected = false
 
       @mqttOptions =
           host: @plugin.config?.mqttServer or @plugin.configProperties.mqttServer.default
@@ -73,27 +74,19 @@ module.exports = (env) ->
       else
         @mqttOptions.protocolId = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 
-
-      env.logger.debug "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
-      if @debug then env.logger.info "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
-
-      @mqttConnector = null
-      @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
-      @mqttConnector = @plugin.mqttClient
-
       checkMultipleDevices = []
       for _device in @config.devices
         do(_device) =>
           device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
           if device instanceof env.devices.DimmerActuator
-            #OK @configDevices.push _device
+            #device type implemented
           else if device instanceof env.devices.SwitchActuator
-            #OK @configDevices.push _device
+            #device type implemented
           else if device instanceof env.devices.HeatingThermostat
             throw new Error "Device type HeatingThermostat not implemented"
           else if device instanceof env.devices.ShutterController
             throw new Error "Device type ShutterController not implemented"
-          else if device?
+          else if not device?
             throw new Error "Device #{_device.pimatic_device_id} does not exist"
           else
             throw new Error "Device type does not exist"
@@ -105,33 +98,36 @@ module.exports = (env) ->
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
 
-      #@framework.on 'after init', =>
       @mqttConnector = new mqtt.connect(@mqttOptions)
-
       @mqttConnector.on "connect", () =>
         env.logger.debug "Successfully connected to MQTT server"
         @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err,granted) =>
           if granted?
             env.logger.debug "Mqtt subscribed to gBridge"
             if @debug then env.logger.info "Mqtt subscribed to gBridge: " + JSON.stringify(granted)
+            @_connectionStatus("mqttConnected")
           if err?
             env.logger.error "Mqtt subscribe error " + err
         )
-        if @debug and @inited then env.logger.info "connectors active"
+        if @debug and @gbridgeConnected then env.logger.info "connectors active"
 
       @mqttConnector.on 'reconnect', () =>
         env.logger.debug "Reconnecting to MQTT server"
 
       @mqttConnector.on 'offline', () =>
         env.logger.debug "MQTT server is offline"
+        @_connectionStatus("mqttDisconnected")
 
       @mqttConnector.on 'error', (error) ->
         env.logger.error "Mqtt server error #{error}"
         env.logger.debug error.stack
+        @_connectionStatus("mqttDisconnected")
 
       @mqttConnector.on 'close', () ->
         env.logger.debug "Connection with MQTT server was closed "
+        @_connectionStatus("mqttDisconnected")
 
+      @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
       @gbridgeConnector.on 'gbridgeConnected', =>
         env.logger.debug "gbridge connected"
         if @debug then env.logger.info "gbridge connected"
@@ -147,7 +143,7 @@ module.exports = (env) ->
               @gbridgeDevices = devices
               @syncDevices()
               .then () =>
-                @inited = true
+                @_connectionStatus("gbridgeConnected")
               .catch (err) =>
                 env.logger.error "Error syncing devices: " + err
             .catch (err) =>
@@ -157,6 +153,7 @@ module.exports = (env) ->
 
       @gbridgeConnector.on 'error', (err) =>
         env.logger.error "Error: " + err
+        @_connectionStatus("gbridgeDisconnected")
 
       @mqttConnector.on 'message', (topic, message, packet) =>
 
@@ -185,11 +182,21 @@ module.exports = (env) ->
             adapter = @getAdapter(_device_id)
             if adapter?
               if topic.endsWith('/set')
-                # do nothing yet
+                env.logger.debug "/set received for gbridge device #{_device_id}, no action"
               else
                 adapter.executeAction(_trait, _value)
 
       super()
+
+    _connectionStatus: (connector) =>
+      if connector == "gbridgeConnected" then @_gbridgeConnected = true
+      if connector == "gbridgeDisconnected" then @_gbridgeConnected = false
+      if connector == "mqttConnected" then @_mqttConnected = true
+      if connector == "mqttDisconnected" then @_mqttConnected = false
+      if @_gbridgeConnected and @_mqttConnected
+        env.logger.info "Gbridge online"
+      else
+        env.logger.info "Gbridge offline"
 
 
     getAdapter: (deviceId) =>
@@ -272,11 +279,10 @@ module.exports = (env) ->
               env.logger.debug "config.device to be updated with gbridge.device_id: " + device.id
               for _value, key in @config.devices
                 if _value.name is device.name
-                  #update all 3 configs
+                  #update all 2 configs
                   @config.devices[key]["gbridge_device_id"] = device.id
                   @adapters[_value.pimatic_device_id]["gbridge_device_id"] = device.id
-                  @getAdapter(_value.pimatic_device_id).gbridgeDeviceId = device.id
-                  env.logger.debug "config.device updated with gbridge.device_id: " + device.id
+                  env.logger.debug "config.device and @adapters updated with gbridge.device_id: " + device.id
             .catch (err) =>
               env.logger.error "Error: updating gbridge_device_id: " + err
               reject()
@@ -292,6 +298,7 @@ module.exports = (env) ->
 
           env.logger.debug "gBridge and Devices synced"
           @gbridgeConnector.requestSync()
+
         resolve()
       )
 

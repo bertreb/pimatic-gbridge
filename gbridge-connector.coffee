@@ -11,9 +11,6 @@ module.exports = (env) ->
       @gbridgeApiUrl = options.server
       @apikey = options.apiKey
       @accessToken = null
-      @start()
-
-    start: () =>
       options =
         uri: @gbridgeApiUrl + "/auth/token"
         method: 'POST'
@@ -71,9 +68,9 @@ module.exports = (env) ->
           json: true
         rp(options).then((device) =>
           env.logger.info "Gbridge_device_id received: " + JSON.stringify(device)
-          return resolve(device)
+          resolve(device)
         ).catch((err) =>
-          return reject(err)     
+          reject(err)     
         )
       )
 
@@ -86,21 +83,23 @@ module.exports = (env) ->
             bearer: @accessToken
           json: true
         rp(options).then(() =>
-          return resolve(device)
+          resolve(device)
         ).catch((err) =>
-          return reject(err)
+          reject(err)
         )
       )
 
     requestSync: () =>
-      options =
-        uri: @gbridgeApiUrl + '/requestsync'
-        method: 'GET'
-        auth:
-          bearer: @accessToken
-        json: true
-      rp(options).then(() =>
-        @emit 'requestSynced'
-      ).catch((err) =>
-        @emit 'gbridgeError', "requestSync: " + @_statusCode err.statusCode
+      return new Promise( (resolve,reject) =>
+        options =
+          uri: @gbridgeApiUrl + '/requestsync'
+          method: 'GET'
+          auth:
+            bearer: @accessToken
+          json: true
+        rp(options).then(() =>
+          resolve()
+        ).catch((err) =>
+          reject(err)
+        )
       )
