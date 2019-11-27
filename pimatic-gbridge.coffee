@@ -19,28 +19,6 @@ module.exports = (env) ->
       @gbridgePrefix = "gBridge"
       @userPrefix = (@config?.mqttUsername).split("-")[1] or ""# the second part of mqtt username with 'u'
       @debug = @config?.debug or false
-      @mqttOptions =
-          host: @config?.mqttServer or @configProperties.mqttServer.default
-          port: 1883
-          username: @config?.mqttUsername or ""
-          password: @config?.mqttPassword or ""
-          clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
-          protocolVersion: @config?.mqttProtocolVersion or 4
-          protocolId: @config?.mqttProtocol or @configProperties.mqttProtocol.default
-          queueQoSZero: true
-          keepalive: 180
-          clean: true
-          rejectUnauthorized: false
-          reconnectPeriod: 15000
-          debug: @config?.debug or false
-      if @config.mqttProtocol == "MQTTS"
-        @mqttOptions.protocolId = "MQTTS"
-        @mqttOptions.host = "mqtts://" + @mqttOptions.host
-        @mqttOptions.port = 8883
-        @mqttOptions["keyPath"] = @config?.certPath or @configProperties.certPath.default
-        @mqttOptions["certPath"] = @config?.keyPath or @configProperties.keyPath.default
-        @mqttOptions["ca"] = @config?.caPath or @configProperties.caPath.default
-
       @gbridgeOptions =
         subscription: @config?.gbridgeSubscription or @configProperties.gbridgeSubscription.default
         server: @config?.gbridgeServer or @configProperties.gbridgeServer.default
@@ -78,23 +56,23 @@ module.exports = (env) ->
           password: @plugin.config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
           protocolVersion: @config?.mqttProtocolVersion or 4
-          protocolId: @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
           queueQoSZero: true
           keepalive: 180
           clean: true
           rejectUnauthorized: false
           reconnectPeriod: 15000
           debug: @plugin.config?.debug or false
-      ###
       if @config.mqttProtocol == "MQTTS"
-        @mqttOptions.protocolId = "MQTTS"
+        #@mqttOptions.protocolId = "MQTTS"
         @mqttOptions.protocol = "mqtts"
-        @mqttOptions.host = "mqtts://" + @mqttOptions.host
+        #@mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
-        @mqttOptions["keyPath"] = @config?.certPath or @plugin.configProperties.certPath.default
-        @mqttOptions["certPath"] = @config?.keyPath or @plugin.configProperties.keyPath.default
-        @mqttOptions["ca"] = @config?.caPath or @plugin.configProperties.caPath.default
-      ###
+        #@mqttOptions["keyPath"] = @config?.certPath or @plugin.configProperties.certPath.default
+        #@mqttOptions["certPath"] = @config?.keyPath or @plugin.configProperties.keyPath.default
+        #@mqttOptions["ca"] = @config?.caPath or @plugin.configProperties.caPath.default
+      else
+        @mqttOptions.protocolId = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
+
 
       env.logger.debug "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
       if @debug then env.logger.info "@mqttOptions: " + JSON.stringify(@mqttOptions,null,2)
@@ -115,6 +93,8 @@ module.exports = (env) ->
             throw new Error "Device type HeatingThermostat not implemented"
           else if device instanceof env.devices.ShutterController
             throw new Error "Device type ShutterController not implemented"
+          else if device?
+            throw new Error "Device #{_device.pimatic_device_id} does not exist"
           else
             throw new Error "Device type does not exist"
           if _.indexOf(checkMultipleDevices, String _device.pimatic_device_id) > -1
@@ -168,7 +148,7 @@ module.exports = (env) ->
               .then () =>
                 @inited = true
               .catch (err) =>
-                env.logger.error "Error suncing devices: " + err
+                env.logger.error "Error syncing devices: " + err
             .catch (err) =>
               env.logger.error "Error getting devices: " + err
           .catch (err) =>
