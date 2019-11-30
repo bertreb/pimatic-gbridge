@@ -56,21 +56,20 @@ module.exports = (env) ->
           username: @plugin.config?.mqttUsername or ""
           password: @plugin.config?.mqttPassword or ""
           clientId: 'pimatic_' + Math.random().toString(16).substr(2, 8)
-          protocolVersion: @config?.mqttProtocolVersion or 4
+          protocolVersion: @plugin.config?.mqttProtocolVersion or 4
           queueQoSZero: true
           keepalive: 180
           clean: true
           rejectUnauthorized: false
           reconnectPeriod: 15000
           debug: @plugin.config?.debug or false
-      if @config.mqttProtocol == "MQTTS"
-        #@mqttOptions.protocolId = "MQTTS"
+      if @plugin.config.mqttProtocol == "MQTTS"
+        @mqttOptions.protocolId = "MQTTS"
         @mqttOptions.protocol = "mqtts"
-        #@mqttOptions.host = "mqtts://" + @mqttOptions.host
         @mqttOptions.port = 8883
-        #@mqttOptions["keyPath"] = @config?.certPath or @plugin.configProperties.certPath.default
-        #@mqttOptions["certPath"] = @config?.keyPath or @plugin.configProperties.keyPath.default
-        #@mqttOptions["ca"] = @config?.caPath or @plugin.configProperties.caPath.default
+        @mqttOptions["keyPath"] = @plugin.config?.certPath or @plugin.configProperties.certPath.default
+        @mqttOptions["certPath"] = @plugin.config?.keyPath or @plugin.configProperties.keyPath.default
+        @mqttOptions["ca"] = @plugin.config?.caPath or @plugin.configProperties.caPath.default
       else
         @mqttOptions.protocolId = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 

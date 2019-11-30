@@ -35,35 +35,5 @@ module.exports = {
               description: "PIN code for two step authorization. The PIN code is usually a 4 to 8 digit number"
               type: "number"
               required: false
-      mqttProtocol:
-        description: "The used protocol for hosted MQTT server. MQTT (default) or MQTTS (with cert,key and ca)"
-        type: "string"
-        required: true
-        enum:["MQTT", "MQTTS"]
-        default: "MQTT"
-      mqttProtocolVersion:
-        description: "The used protocolVersion of MQTT"
-        type: "integer"
-        required: true
-        default: 4
-      certPath:
-        description: "Path to the certificate of the client in PEM format, required for the TLS connection"
-        type: "string"
-        default: "/etc/ssl/certs/"
-        required: false
-      keyPath:
-        description: "Path to the key of the client in PEM format, required for the TLS connection"
-        type: "string"
-        default: "/etc/ssl/certs/"
-        required: false
-      caPath:
-        description: "Path to the trusted CA list"
-        type: "string"
-        default: "/etc/ssl/certs/"
-        required: false
-      debug:
-        description: "If enabled writes debug messages to screen."
-        type: "boolean"
-        default: false
   }
 }

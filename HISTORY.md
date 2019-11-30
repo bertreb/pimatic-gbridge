@@ -9,3 +9,5 @@
 	* improve on adding device
 	* add device debug
 	* software cleanup and bugfixes
+* 20191130, v0.1.21
+	* moved all static config options to plugin config
