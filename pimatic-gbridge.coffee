@@ -64,7 +64,7 @@ module.exports = (env) ->
           reconnectPeriod: 15000
           debug: @plugin.config?.debug or false
       if @plugin.config.mqttProtocol == "MQTTS"
-        @mqttOptions["protocolId"] = "MQTTS"
+        #@mqttOptions["protocolId"] = "MQTTS"
         @mqttOptions["protocol"] = "mqtts"
         @mqttOptions.port = 8883
         @mqttOptions["keyPath"] = @plugin.config?.certPath or @plugin.configProperties.certPath.default
@@ -190,12 +190,13 @@ module.exports = (env) ->
                 else
                   adapter.executeAction(_trait, _value)
 
-        @framework.on "deviceRemoved", (device) =>
-          if _.find(@config.devices, (d) => d.pimatic_device_id == device.id)
-            env.logger.info "please remove device also in gBridge!"
-            # delete device in gBridge
-            # delete adapter
-            # delete device-item this device 
+      @framework.on "deviceRemoved", (device) =>
+        if _.find(@config.devices, (d) => d.pimatic_device_id == device.id)
+          throw new Error "Please remove device also in gBridge"
+          env.logger.info "please remove device also in gBridge!"
+          # delete device in gBridge
+          # delete adapter
+          # delete device-item this device 
 
       super()
 

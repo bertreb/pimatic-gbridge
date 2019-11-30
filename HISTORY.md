@@ -11,6 +11,7 @@
 	* software cleanup and bugfixes
 * 20191130, v0.1.21
 	* moved all static config options to plugin config
-* 20191130, v0.1.22
+* 20191130, v0.1.23
 	* changed device type to presence
 	* no connection to mqtt when no devices in config
+	* bugfix on removed device detection
