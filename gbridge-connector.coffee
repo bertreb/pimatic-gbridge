@@ -14,7 +14,7 @@ module.exports = (env) ->
       options =
         uri: @gbridgeApiUrl + "/auth/token"
         method: 'POST'
-        body: 
+        body:
           apikey: @apikey
         json: true
       rp(options)
@@ -23,7 +23,7 @@ module.exports = (env) ->
         @emit 'gbridgeConnected'
       .catch (err) =>
         @emit 'error', "Not possible to connect to gBridge: " + err
-           
+
     getDevices: () =>
       return new Promise( (resolve,reject) =>
         options =
@@ -37,11 +37,11 @@ module.exports = (env) ->
           env.logger.debug devices.length + " gbridge devices received"
           resolve(devices)
         .catch (err) =>
-          env.logger.info "=====> " + err
-          reject(err) 
+          env.logger.error err
+          reject(err)
       )
 
-    _statusCode: (statusCode) =>  
+    _statusCode: (statusCode) =>
       _return =
         switch statusCode
           when 400
@@ -54,9 +54,9 @@ module.exports = (env) ->
            "Methode not allowed"
           when 500
            "Internal error"
-          else  
+          else
             statusCode
-    
+
     addDevice: (device) =>
       return new Promise( (resolve,reject) =>
         options =
@@ -66,13 +66,10 @@ module.exports = (env) ->
           auth:
             bearer: @accessToken
           json: true
-        env.logger.info "In addDevice: " + JSON.stringify(options,null,2)
         rp(options).then((device) =>
-          env.logger.info "Gbridge_device_id received: " + JSON.stringify(device)
           resolve(device)
         ).catch((err) =>
-          env.logger.info "addDevice error: " + JSON.stringify(err,null,2)
-          reject(err)     
+          reject(err)
         )
       )
 
