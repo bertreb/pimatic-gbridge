@@ -52,6 +52,9 @@ module.exports = (env) ->
     setGbridgeDeviceId: (deviceId) =>
       @gbridgeDeviceId = deviceId
 
+    getGbridgeDeviceId: () =>
+      return @gbridgeDeviceId
+
     getTopic: () =>
       _topic = @topicPrefix + "/" + @topicUser + "/d" + @gbridgeDeviceId
       return _topic
