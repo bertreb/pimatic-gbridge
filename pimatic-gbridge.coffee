@@ -108,12 +108,10 @@ module.exports = (env) ->
         @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err,granted) =>
           if granted?
             env.logger.debug "Mqtt subscribed to gBridge"
-            if @debug then env.logger.info "Mqtt subscribed to gBridge: " + JSON.stringify(granted)
             @_connectionStatus("mqttConnected")
           if err?
             env.logger.error "Mqtt subscribe error " + err
         )
-        if @debug and @gbridgeConnected then env.logger.info "connectors active"
 
       @mqttConnector.on 'reconnect', () =>
         env.logger.debug "Reconnecting to MQTT server"
@@ -134,7 +132,6 @@ module.exports = (env) ->
       @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
       @gbridgeConnector.on 'gbridgeConnected', =>
         env.logger.debug "gbridge connected"
-        if @debug then env.logger.info "gbridge connected"
         @framework.variableManager.waitForInit()
         .then () =>
           @addAdapters()
@@ -143,7 +140,6 @@ module.exports = (env) ->
             @gbridgeConnector.getDevices()
             .then (devices) =>
               env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
-              if @debug then env.logger.info "gbridge devices received, devices: " + JSON.stringify(devices)
               @gbridgeDevices = devices
               @syncDevices()
               .then () =>
@@ -171,7 +167,6 @@ module.exports = (env) ->
         _value = String message #JSON.parse(message)
 
         env.logger.debug "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
-        if @debug then env.logger.info "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
         switch String message
           when "EXECUTE"
             # do nothing
@@ -271,9 +266,6 @@ module.exports = (env) ->
 
           env.logger.debug "gbridgeAdditions: " + JSON.stringify(gbridgeAdditions)
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
-          if @debug
-            env.logger.info "gbridgeAdditions: " + JSON.stringify(gbridgeAdditions)
-            env.logger.info "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
           for _device in gbridgeAdditions
             adapter = @getAdapter(_device.pimatic_device_id)
             unless adapter?
