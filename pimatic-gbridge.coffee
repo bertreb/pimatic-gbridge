@@ -110,7 +110,7 @@ module.exports = (env) ->
             env.logger.debug "Mqtt subscribed to gBridge"
             @_connectionStatus("mqttConnected")
           if err?
-            env.logger.error "Mqtt subscribe error " + err
+            env.logger.debug err
         )
 
       @mqttConnector.on 'reconnect', () =>
