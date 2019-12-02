@@ -93,10 +93,10 @@ module.exports = (env) ->
         when "ack"
           _twoFa["used"] = true
           _twoFa["method"] = "ack"
-        when "pin"
-          _twoFa["used"] = true
-          _twoFa["method"] = "pin"
-          _twoFa["pin"] = @twoFaPin
+        #when "pin"
+        #  _twoFa["used"] = true
+        #  _twoFa["method"] = "pin"
+        #  _twoFa["pin"] = @twoFaPin
       return _twoFa
 
     destroy: ->

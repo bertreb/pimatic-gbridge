@@ -198,7 +198,7 @@ module.exports = (env) ->
           env.logger.info "please remove device also in gBridge!"
           # delete device in gBridge
           # delete adapter
-          # delete device-item this device 
+          # delete device-item this device
 
       super()
 
@@ -240,8 +240,7 @@ module.exports = (env) ->
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: if _value.gbridge_device_id? then _value.gbridge_device_id else 0
             twoFa: if _value.twofa? then _value.twofa else undefined
-            twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
-          env.logger.info "HHHHHHHH _value: " + JSON.stringify(_value) + ", _adapterConfig: " + _adapterConfig.twofa + " - " + _adapterConfig.twofaPin
+            #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
           if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
             @adapters[String pimaticDevice.id] = new lightAdapter(_adapterConfig)
@@ -284,13 +283,13 @@ module.exports = (env) ->
             _deviceAdd =
               name: _device.name
               type: adapter.getType()
-              traits: adapter.getTraits()          
+              traits: adapter.getTraits()
             _twofa = adapter.getTwoFa()
             env.logger.info "++++++> _twofa: " + JSON.stringify(_twofa,null,2)
             if _twofa.used
               _deviceAdd["twofa"] = _twofa.method
-              if _twofa.method == "pin"
-                _deviceAdd["twofaPin"] = String _twofa.pin
+              #if _twofa.method == "pin"
+              #  _deviceAdd["twofaPin"] = String _twofa.pin
             env.logger.info "++++++> _deviceADD: " + JSON.stringify(_deviceAdd,null,2)
             @gbridgeConnector.addDevice(_deviceAdd)
             .then (device) =>
@@ -330,7 +329,7 @@ module.exports = (env) ->
     destroy: ->
       for adapter of @adapters
         delete adapters
-      if @mqttConnector? 
+      if @mqttConnector?
         @mqttConnector.removeAllListeners()
         @mqttConnector.end()
         @gbridgeConnector.removeAllListeners()
