@@ -277,17 +277,14 @@ module.exports = (env) ->
               type: adapter.getType()
               traits: adapter.getTraits()
             _twofa = adapter.getTwoFa()
-            env.logger.info "++++++> _twofa: " + JSON.stringify(_twofa,null,2)
             if _twofa.used
               _deviceAdd["twofa"] = _twofa.method
               #if _twofa.method == "pin"
               #  _deviceAdd["twofaPin"] = String _twofa.pin
-            env.logger.info "++++++> _deviceADD: " + JSON.stringify(_deviceAdd,null,2)
             @gbridgeConnector.addDevice(_deviceAdd)
             .then (device) =>
               env.logger.debug "config.device to be updated with gbridge.device_id: " + device.id
               for _value, key in @config.devices
-                env.logger.info "_value: " + _value + ", key: " + key
                 if _value.name is device.name
                   #update all 2 configs
                   @config.devices[key]["gbridge_device_id"] = device.id
