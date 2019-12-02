@@ -47,7 +47,7 @@ When there's at least 1 device in the config, the dot will go present when a con
           name:              "the gBridge device name, and command used in GoogleAssistant"
           pimatic_device_id: "the pimatic device ID"
           gbridge_device_id: "The gbrigde device ID. Is automatically added"
-          twofa:             "Two-step confirmation "
+          twofa:             "Two-step confirmation. Google Assistant will ask for confirmation"
                               ["none", "ack"] default: "none"
 }
 ```
