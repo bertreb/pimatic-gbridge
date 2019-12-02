@@ -102,93 +102,95 @@ module.exports = (env) ->
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
 
-      if @config.devices.length > 0
-        @mqttConnector = new mqtt.connect(@mqttOptions)
-        @mqttConnector.on "connect", () =>
-          env.logger.debug "Successfully connected to MQTT server"
-          @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err,granted) =>
-            if granted?
-              env.logger.debug "Mqtt subscribed to gBridge"
-              if @debug then env.logger.info "Mqtt subscribed to gBridge: " + JSON.stringify(granted)
-              @_connectionStatus("mqttConnected")
-            if err?
-              env.logger.error "Mqtt subscribe error " + err
-          )
-          if @debug and @gbridgeConnected then env.logger.info "connectors active"
+      @mqttConnector = new mqtt.connect(@mqttOptions)
+      @mqttConnector.on "connect", () =>
+        env.logger.debug "Successfully connected to MQTT server"
+        @mqttConnector.subscribe(@plugin.mqttBaseTopic, (err,granted) =>
+          if granted?
+            env.logger.debug "Mqtt subscribed to gBridge"
+            if @debug then env.logger.info "Mqtt subscribed to gBridge: " + JSON.stringify(granted)
+            @_connectionStatus("mqttConnected")
+          if err?
+            env.logger.error "Mqtt subscribe error " + err
+        )
+        if @debug and @gbridgeConnected then env.logger.info "connectors active"
 
-        @mqttConnector.on 'reconnect', () =>
-          env.logger.debug "Reconnecting to MQTT server"
+      @mqttConnector.on 'reconnect', () =>
+        env.logger.debug "Reconnecting to MQTT server"
 
-        @mqttConnector.on 'offline', () =>
-          env.logger.debug "MQTT server is offline"
-          @_connectionStatus("mqttDisconnected")
+      @mqttConnector.on 'offline', () =>
+        env.logger.debug "MQTT server is offline"
+        @_connectionStatus("mqttDisconnected")
 
-        @mqttConnector.on 'error', (error) =>
-          env.logger.error "Mqtt server error #{error}"
-          env.logger.debug error.stack
-          @_connectionStatus("mqttDisconnected")
+      @mqttConnector.on 'error', (error) =>
+        env.logger.error "Mqtt server error #{error}"
+        env.logger.debug error.stack
+        @_connectionStatus("mqttDisconnected")
 
-        @mqttConnector.on 'close', () =>
-          env.logger.debug "Connection with MQTT server was closed "
-          @_connectionStatus("mqttDisconnected")
+      @mqttConnector.on 'close', () =>
+        env.logger.debug "Connection with MQTT server was closed "
+        @_connectionStatus("mqttDisconnected")
 
-        @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
-        @gbridgeConnector.on 'gbridgeConnected', =>
-          env.logger.debug "gbridge connected"
-          if @debug then env.logger.info "gbridge connected"
-          @framework.variableManager.waitForInit()
+      @gbridgeConnector = new gbridgeConnector(@plugin.gbridgeOptions)
+      @gbridgeConnector.on 'gbridgeConnected', =>
+        env.logger.debug "gbridge connected"
+        if @debug then env.logger.info "gbridge connected"
+        @framework.variableManager.waitForInit()
+        .then () =>
+          @addAdapters()
           .then () =>
-            @addAdapters()
-            .then () =>
-              env.logger.debug "Adapters added"
-              @gbridgeConnector.getDevices()
-              .then (devices) =>
-                env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
-                if @debug then env.logger.info "gbridge devices received, devices: " + JSON.stringify(devices)
-                @gbridgeDevices = devices
-                @syncDevices()
-                .then () =>
-                  @_connectionStatus("gbridgeConnected")
-                .catch (err) =>
-                  env.logger.error "Error syncing devices: " + err
-              .catch (err) =>
-                env.logger.error "Error getting devices: " + err
-            .catch (err) =>
-              env.logger.error("Error adding adapters! ") # + err)
-
-        @gbridgeConnector.on 'error', (err) =>
-          env.logger.error "Error: " + err
-          @_connectionStatus("gbridgeDisconnected")
-
-        @mqttConnector.on 'message', (topic, message, packet) =>
-          _info = (String topic).split('/') #Tomatch(topic, @baseTopic)?
-          _gBridgePrefix = _info[0]
-          _userPrefix = _info[1]
-          _device_id = Number _info[2].substr(1)
-          _trait = _info[3]
-          _value = String message #JSON.parse(message)
-
-          env.logger.debug "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
-          if @debug then env.logger.info "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
-          switch String message
-            when "EXECUTE"
-              # do nothing
-              env.logger.debug "EXECUTE received: " + JSON.stringify(packet)
-            when "SYNC"
-              env.logger.debug "SYNC received: " + JSON.stringify(packet)
-            when "QUERY"
-              env.logger.debug "device_id: " + _device_id + ", message: " + message + ", " + JSON.stringify(packet)
-              for _device in @config.devices
-                _adapter = @getAdapter(_device.pimatic_device_id)
-                if _adapter?
-                  _adapter.publishState()
-            else
-              adapter = @getAdapter(_device_id)
-              if adapter?
-                if topic.endsWith('/set')
-                  env.logger.debug "/set received for gbridge device #{_device_id}, no action"
+            env.logger.debug "Adapters added"
+            @gbridgeConnector.getDevices()
+            .then (devices) =>
+              env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
+              if @debug then env.logger.info "gbridge devices received, devices: " + JSON.stringify(devices)
+              @gbridgeDevices = devices
+              @syncDevices()
+              .then () =>
+                if @config.devices.length is 0
+                  @mqttConnector.end()
                 else
-                  adapter.executeAction(_trait, _value)
+                  @_connectionStatus("gbridgeConnected")
+              .catch (err) =>
+                env.logger.error "Error syncing devices: " + err
+            .catch (err) =>
+              env.logger.error "Error getting devices: " + err
+          .catch (err) =>
+            env.logger.error("Error adding adapters! ") # + err)
+
+      @gbridgeConnector.on 'error', (err) =>
+        env.logger.error "Error: " + err
+        @_connectionStatus("gbridgeDisconnected")
+
+      @mqttConnector.on 'message', (topic, message, packet) =>
+        _info = (String topic).split('/') #Tomatch(topic, @baseTopic)?
+        _gBridgePrefix = _info[0]
+        _userPrefix = _info[1]
+        _device_id = Number _info[2].substr(1)
+        _trait = _info[3]
+        _value = String message #JSON.parse(message)
+
+        env.logger.debug "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
+        if @debug then env.logger.info "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
+        switch String message
+          when "EXECUTE"
+            # do nothing
+            env.logger.debug "EXECUTE received: " + JSON.stringify(packet)
+          when "SYNC"
+            env.logger.debug "SYNC received: " + JSON.stringify(packet)
+          when "QUERY"
+            env.logger.debug "device_id: " + _device_id + ", message: " + message + ", " + JSON.stringify(packet)
+            for _device in @config.devices
+              _adapter = @getAdapter(_device.pimatic_device_id)
+              if _adapter?
+                _adapter.publishState()
+          else
+            adapter = @getAdapter(_device_id)
+            if adapter?
+              if topic.endsWith('/set')
+                env.logger.debug "/set received for gbridge device #{_device_id}, no action"
+              else
+                adapter.executeAction(_trait, _value)
 
       @framework.on "deviceRemoved", (device) =>
         if _.find(@config.devices, (d) => d.pimatic_device_id == device.id)
@@ -237,8 +239,9 @@ module.exports = (env) ->
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: if _value.gbridge_device_id? then _value.gbridge_device_id else 0
-            twoFa: @twoFa
-            twoFaPin: @twoFaPin
+            twoFa: if _value.twofa? then _value.twofa else undefined
+            twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
+          env.logger.info "HHHHHHHH _value: " + JSON.stringify(_value) + ", _adapterConfig: " + _adapterConfig.twofa + " - " + _adapterConfig.twofaPin
           if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
             @adapters[String pimaticDevice.id] = new lightAdapter(_adapterConfig)
@@ -281,12 +284,14 @@ module.exports = (env) ->
             _deviceAdd =
               name: _device.name
               type: adapter.getType()
-              traits: adapter.getTraits()
+              traits: adapter.getTraits()          
             _twofa = adapter.getTwoFa()
+            env.logger.info "++++++> _twofa: " + JSON.stringify(_twofa,null,2)
             if _twofa.used
-              _deviceAdd["twafa"] = _twofa.twafa
-              if _twofa.twoFa.twofaPin?
-                _deviceAdd["twofapin"] = _twofa.twoFaPin
+              _deviceAdd["twofa"] = _twofa.method
+              if _twofa.method == "pin"
+                _deviceAdd["twofaPin"] = String _twofa.pin
+            env.logger.info "++++++> _deviceADD: " + JSON.stringify(_deviceAdd,null,2)
             @gbridgeConnector.addDevice(_deviceAdd)
             .then (device) =>
               env.logger.debug "config.device to be updated with gbridge.device_id: " + device.id
@@ -297,7 +302,7 @@ module.exports = (env) ->
                   @config.devices[key]["gbridge_device_id"] = device.id
                   @adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
             .catch (err) =>
-              env.logger.error "Error: updating gbridge_device_id: " + err
+              env.logger.error "Error: updating gbridge_device_id: " + JSON.stringify(err,null,2)
               reject()
 
           for _deviceRemove in gbridgeRemovals

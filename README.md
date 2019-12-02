@@ -1,12 +1,12 @@
 pimatic-gbridge
 ===================
-The Gbridge plugin lets you connect a Pimatic home automation system with a Google assistant via Gbridge. Gbridge is a MQTT broker that 'works with Google'. After creating an gBrige account and obtaining an API key you can configure the plugin and add devices to be controlled via Google Assistant.
+The gBridge plugin lets you connect a Pimatic home automation system with a Google assistant via gBridge. gBridge is a MQTT broker that 'works with Google'. After creating an gBridge account and obtaining an API key you can configure the plugin and add devices to be controlled via Google Assistant.
 The number of devices id dependent on the gBridge plan you've got. The free plan allows 4 devices the paid plan gives an unlimited number of devices.
 
 
 Installation
 ------------
-To enable the Gbridge plugin add this to the plugins section via the GUI or add it in the config.json file.
+To enable the gBridge plugin add this to the plugins section via the GUI or add it in the config.json file.
 
 ```
 ...
@@ -36,10 +36,9 @@ Gbridge device
 -----------------
 When the plugin is installed (including restart) a Gbridge device can be added.
 
-
 Below the settings with the default values. In the devices your configure which Pimatic devices will be controlled by Google Assistant and what name they get. The name is visible in the Google Assistant and is the name you use in voice commands.
-In this release only SwitchActuator and DimmerActuator based Pimatic devices are supported.
-When there's at least 1 devices in the config, the dot will go present when a connenction to gBride/mqtt is made.
+In this release the SwitchActuator and DimmerActuator based Pimatic devices are supported.
+When there's at least 1 device in the config, the dot will go present when a connection to gBridge and the mqtt server is made.
 
 ```
 {

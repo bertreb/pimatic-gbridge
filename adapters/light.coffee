@@ -89,15 +89,14 @@ module.exports = (env) ->
     getTwoFa: () =>
       _twoFa =
         used: false
-      if @twoFa? and @twoFaPin?
-        switch @twoFa
-          when "ack"
-            _twoFa["used"] = true
-            _twoFa["method"] = "ack"
-          when "pin"
-            _twoFa["used"] = true
-            _twoFa["method"] = "pin"
-            _twoFa["pin"] = @twoFaPin
+      switch @twoFa
+        when "ack"
+          _twoFa["used"] = true
+          _twoFa["method"] = "ack"
+        when "pin"
+          _twoFa["used"] = true
+          _twoFa["method"] = "pin"
+          _twoFa["pin"] = @twoFaPin
       return _twoFa
 
     destroy: ->

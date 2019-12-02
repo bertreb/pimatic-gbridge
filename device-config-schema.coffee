@@ -28,12 +28,11 @@ module.exports = {
               default: 0
             twofa:
               description: "Two-step confirmation or PIN-Code verification"
-              enum: ["none", "ack", "pin"]
-              required: false
-              default: "none"
+              enum: ["ack"]
+              default: "ack"
             twofaPin:
-              description: "PIN code for two step authorization. The PIN code is usually a 4 to 8 digit number"
-              type: "number"
+              description: "PIN code for two step authorization. Not yet supported "#The PIN code is usually a 4 to 8 digit number"
+              type: "string"
               required: false
   }
 }

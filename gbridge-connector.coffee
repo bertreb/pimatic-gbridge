@@ -66,10 +66,12 @@ module.exports = (env) ->
           auth:
             bearer: @accessToken
           json: true
+        env.logger.info "In addDevice: " + JSON.stringify(options,null,2)
         rp(options).then((device) =>
           env.logger.info "Gbridge_device_id received: " + JSON.stringify(device)
           resolve(device)
         ).catch((err) =>
+          env.logger.info "addDevice error: " + JSON.stringify(err,null,2)
           reject(err)     
         )
       )
