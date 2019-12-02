@@ -15,6 +15,7 @@
 	* changed device type to presence
 	* no connection to mqtt when no devices in config
 	* bugfix on removed device detection
-* 20191201, v0.2.3
+* 20191201, v0.2.5
 	* improved logging and mqtt handling
+	* code fixes
 	* release for friendly user test

@@ -90,10 +90,10 @@ module.exports = (env) ->
       @twoFa = _twofa
 
     getTwoFa: () =>
-      _twoFa = {}
+      _twoFa = null
       switch @twoFa
         when "ack"
-          _twoFa["twofa"] = "ack"
+          _twoFa = "ack"
         #when "pin"
         #  _twoFa["used"] = true
         #  _twoFa["method"] = "pin"
