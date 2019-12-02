@@ -234,7 +234,7 @@ module.exports = (env) ->
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: if _value.gbridge_device_id? then _value.gbridge_device_id else 0
-            twoFa: if _value.twofa? then _value.twofa else undefined
+            twoFa: _value.twofa
             #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
           if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
@@ -254,43 +254,66 @@ module.exports = (env) ->
     syncDevices: () =>
       return new Promise( (resolve,reject) =>
         gbridgeAdditions = []
+        gbridgeUpdates = []
         gbridgeRemovals = []
 
         if @config.devices? and @gbridgeDevices?
           for _device in @config.devices
             if !@inArray(_device.name, @gbridgeDevices)
               gbridgeAdditions.push _device
+            # check if the twofa changed and an update is needed
+            else
+              for _gbridgeDevice in @gbridgeDevices
+                if _gbridgeDevice.name is _device.name and (String _gbridgeDevice.twofa ^ String _device.twofa)
+                  gbridgeUpdates.push _device
+                  env.logger.info "_device: " + JSON.stringify(_device)
           for _gbridgeDevice in @gbridgeDevices
             if !@inArray(_gbridgeDevice.name, @config.devices)
               gbridgeRemovals.push _gbridgeDevice
 
           env.logger.debug "gbridgeAdditions: " + JSON.stringify(gbridgeAdditions)
+          env.logger.debug "gbridgeUpdates: " + JSON.stringify(gbridgeUpdates)
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
           for _device in gbridgeAdditions
             adapter = @getAdapter(_device.pimatic_device_id)
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.gbridge_device_id}'"
-              return
+              reject()
             env.logger.debug "Device: '" + _device.name + "' not found in gBridge, adding"
             _deviceAdd =
               name: _device.name
               type: adapter.getType()
               traits: adapter.getTraits()
-            _twofa = adapter.getTwoFa()
-            if _twofa.used
-              _deviceAdd["twofa"] = _twofa.method
-              #if _twofa.method == "pin"
-              #  _deviceAdd["twofaPin"] = String _twofa.pin
+              twofa: adapter.getTwoFa()
             @gbridgeConnector.addDevice(_deviceAdd)
             .then (device) =>
               env.logger.debug "config.device to be updated with gbridge.device_id: " + device.id
               for _value, key in @config.devices
                 if _value.name is device.name
-                  #update all 2 configs
                   @config.devices[key]["gbridge_device_id"] = device.id
                   @adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
             .catch (err) =>
               env.logger.error "Error: updating gbridge_device_id: " + JSON.stringify(err,null,2)
+              reject()
+
+          for _device in gbridgeUpdates
+            adapter = @getAdapter(_device.pimatic_device_id)
+            unless adapter?
+              env.logger.error "Adapter not found for pimatic device '#{_device.gbridge_device_id}'"
+              reject()
+            env.logger.debug "Updating device: '" + _device.name + "'"
+            adapter.setTwofa(_device.twofa)
+            _deviceUpdate =
+              name: _device.name
+              type: adapter.getType()
+              traits: adapter.getTraits()
+              twofa: adapter.getTwoFa()
+            env.logger.info "_deviceUpdate: " + JSON.stringify(_deviceUpdate)
+            @gbridgeConnector.updateDevice(_deviceUpdate, _device.gbridge_device_id)
+            .then (device) =>
+              env.logger.debug "Device updated"
+            .catch (err) =>
+              env.logger.error "Device not updated: " + JSON.stringify(err,null,2)
               reject()
 
           for _deviceRemove in gbridgeRemovals

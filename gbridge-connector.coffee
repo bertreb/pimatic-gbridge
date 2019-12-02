@@ -73,6 +73,22 @@ module.exports = (env) ->
         )
       )
 
+    updateDevice: (device, device_id) =>
+      return new Promise( (resolve,reject) =>
+        options =
+          uri: @gbridgeApiUrl + '/device/' + device_id
+          method: 'PATCH'
+          body: device
+          auth:
+            bearer: @accessToken
+          json: true
+        rp(options).then((device) =>
+          resolve()
+        ).catch((err) =>
+          reject(err)
+        )
+      )
+
     removeDevice: (device) =>
       return new Promise( (resolve,reject) =>
         options =

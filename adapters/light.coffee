@@ -82,17 +82,18 @@ module.exports = (env) ->
       traits = [
         {'type' : 'Brightness'},
         {'type' : 'OnOff'} #,
-        #{'type' : 'Scene'}
+        # {'type' : 'Scene'}
       ]
       return traits
 
+    setTwofa: (_twofa) =>
+      @twoFa = _twofa
+
     getTwoFa: () =>
-      _twoFa =
-        used: false
+      _twoFa = {}
       switch @twoFa
         when "ack"
-          _twoFa["used"] = true
-          _twoFa["method"] = "ack"
+          _twoFa["twofa"] = "ack"
         #when "pin"
         #  _twoFa["used"] = true
         #  _twoFa["method"] = "pin"

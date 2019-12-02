@@ -65,13 +65,14 @@ module.exports = (env) ->
       ]
       return traits
 
+    setTwofa: (_twofa) =>
+      @twoFa = _twofa
+
     getTwoFa: () =>
-      _twoFa =
-        used: false
+      _twoFa = null
       switch @twoFa
         when "ack"
-          _twoFa["used"] = true
-          _twoFa["method"] = "ack"
+          _twoFa = "ack"
         #when "pin"
         #  _twoFa["used"] = true
         #  _twoFa["method"] = "pin"

@@ -29,6 +29,5 @@ module.exports = {
             twofa:
               description: "Two-step confirmation"
               enum: ["none", "ack"]
-              default: "none"
   }
 }
