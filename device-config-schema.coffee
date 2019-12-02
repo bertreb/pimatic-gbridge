@@ -27,7 +27,7 @@ module.exports = {
               required: true
               default: 0
             twofa:
-              description: "Two-step confirmation"
+              description: "Two-step confirmation. Google Assistant will ask for confirmation"
               enum: ["none", "ack"]
   }
 }
