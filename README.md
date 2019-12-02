@@ -20,7 +20,6 @@ Options to configure in the plugin settings:
   mqttProtocol:         "The used protocol for hosted MQTT server. MQTT (default) or MQTTS"
   mqttUsername:         "The mqtt hosted server username"
   mqttPassword:         "The mqtt hosted server password"
-  mqttBaseTopic:        "gBridge/u{user_id}/" not changable in free plan
   certPath:             "Path to the certificate in PEM format for the MQTTS/TLS connection"
   keyPath:              "Path to the key in PEM format,  for the MQTTS/TLS connection"
   caPath:               "Path to the trusted CA list"
