@@ -41,7 +41,7 @@ When the plugin is installed (including restart) a Gbridge device can be added.
 
 Below the settings with the default values. In the devices your configure which Pimatic devices will be controlled by Google Assistant and what name they get. The name is visible in the Google Assistant and is the name you use in voice commands.
 In this release the SwitchActuator and DimmerActuator based Pimatic devices are supported.
-When there's at least 1 device in the config, the dot will go present when a connection to gBridge and the mqtt server is made.
+When there's at least 1 device in the config, the dot will go present after a connection to gBridge and the mqtt server is made.
 
 ```
 {
