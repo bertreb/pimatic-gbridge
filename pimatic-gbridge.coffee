@@ -80,22 +80,22 @@ module.exports = (env) ->
       else
         @mqttOptions["protocolId"] = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 
-      #@framework.variableManager.waitForInit()
-      #.then () =>
-      #tes
+      @framework.variableManager.waitForInit()
+      .then () =>
+        for _device in @config.devices
+          device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
+          if device instanceof env.devices.DimmerActuator
+            #device type implemented
+          else if device instanceof env.devices.SwitchActuator
+            #device type implemented
+          else if device instanceof env.devices.HeatingThermostat
+            throw new Error "Device type HeatingThermostat not implemented"
+          else if device instanceof env.devices.ShutterController
+            throw new Error "Device type ShutterController not implemented"
+          else
+            throw new Error "Device type does not exist"
 
-      for _device in @config.devices
-        device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
-        if device instanceof env.devices.DimmerActuator
-          #device type implemented
-        else if device instanceof env.devices.SwitchActuator
-          #device type implemented
-        else if device instanceof env.devices.HeatingThermostat
-          throw new Error "Device type HeatingThermostat not implemented"
-        else if device instanceof env.devices.ShutterController
-          throw new Error "Device type ShutterController not implemented"
-        else
-          throw new Error "Device type does not exist"
+
 
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
@@ -180,12 +180,14 @@ module.exports = (env) ->
           else
             for _device in @config.devices
               _adapter = @adapters[_device.pimatic_device_id]
-              #env.logger.info "adapter " + JSON.stringify(_adapter) + ", _device_id: " + _device_id
-              if String _adapter.gBridgeDeviceId == String _device_id
-                if topic.endsWith('/set')
-                  env.logger.debug "/set received for gbridge device #{_device_id}, no action"
-                else
-                  _adapter.executeAction(_trait, _value)
+              if _adapter?
+                if _adapter.getGbridgeDeviceId() == _device_id
+                  if topic.endsWith('/set')
+                    env.logger.debug "/set received for gbridge device #{_device_id}, no action"
+                  else
+                    _adapter.executeAction(_trait, _value)
+                    return
+
 
       @framework.on "deviceRemoved", (device) =>
         if _.find(@config.devices, (d) => d.pimatic_device_id == device.id)

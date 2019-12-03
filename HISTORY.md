@@ -19,7 +19,7 @@
 	* improved logging and mqtt handling
 	* code fixes
 	* removed update of device confirmation
-* 20191203, v0.2.10
+* 20191203, v0.2.11
 	* getting all device info from gbridge
 	* remove gbridge id from config
 	* error handling and fixes
