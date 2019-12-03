@@ -45,6 +45,14 @@ module.exports = (env) ->
       @adapters = {}
       @debug = @plugin.config?.debug or false
 
+      checkMultipleDevices = []
+      for _device in @config.devices
+        do(_device) =>
+          if _.find(checkMultipleDevices, (d) => d is _device.pimatic_device_id)?
+            throw new Error "#{_device.pimatic_device_id} is already used"
+          else
+            checkMultipleDevices.push _device.pimatic_device_id
+
       @_gbridgeConnected = false
       @_mqttConnected = false
       @emit 'presence', false
@@ -72,31 +80,22 @@ module.exports = (env) ->
       else
         @mqttOptions["protocolId"] = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 
-      checkMultipleDevices = []
-      @framework.variableManager.waitForInit()
-      .then () =>
-        for _device in @config.devices
-          do(_device) =>
-            try
-              device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
-              if device instanceof env.devices.DimmerActuator
-                #device type implemented
-              else if device instanceof env.devices.SwitchActuator
-                #device type implemented
-              else if device instanceof env.devices.HeatingThermostat
-                throw new Error "Device type HeatingThermostat not implemented"
-              else if device instanceof env.devices.ShutterController
-                throw new Error "Device type ShutterController not implemented"
-              else
-                throw new Error "Device type does not exist"
-              if _.indexOf(checkMultipleDevices, String _device.pimatic_device_id) > -1
-                throw new Error "#{device.id} is already used"
-              else
-                checkMultipleDevices.push String _device.pimatic_device_id
-            catch err
-              throw new Error "Device #{_device.pimatic_device_id} does not exist"
-      .catch (err) =>
-        env.logger.error "Something is wrong: " + err
+      #@framework.variableManager.waitForInit()
+      #.then () =>
+      #tes
+
+      for _device in @config.devices
+        device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
+        if device instanceof env.devices.DimmerActuator
+          #device type implemented
+        else if device instanceof env.devices.SwitchActuator
+          #device type implemented
+        else if device instanceof env.devices.HeatingThermostat
+          throw new Error "Device type HeatingThermostat not implemented"
+        else if device instanceof env.devices.ShutterController
+          throw new Error "Device type ShutterController not implemented"
+        else
+          throw new Error "Device type does not exist"
 
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
