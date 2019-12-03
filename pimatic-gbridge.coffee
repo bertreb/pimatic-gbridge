@@ -7,7 +7,6 @@ module.exports = (env) ->
   switchAdapter = require('./adapters/switch')(env)
   lightAdapter = require('./adapters/light')(env)
   mqtt = require('mqtt')
-  match = require('mqtt-wildcard')
   _ = require('lodash')
 
 
@@ -266,10 +265,10 @@ module.exports = (env) ->
 
         if @config.devices? and @gbridgeDevices?
           for _device in @config.devices
-            if !_.find(@gbridgeDevices, (d) => 
+            if !_.find(@gbridgeDevices, (d) =>
               d.name == _device.name)
               gbridgeAdditions.push _device
-            # check if the twofa changed and an update is needed       
+            # check if the twofa changed and an update is needed
             else
               for _gbridgeDevice in @gbridgeDevices
                 gbridgeTwofa = if _gbridgeDevice.twofa? then _gbridgeDevice.twofa else "none"

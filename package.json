@@ -32,7 +32,6 @@
   "configSchema": "pimatic-gbridge-config-schema.coffee",
   "dependencies": {
     "mqtt": ">=2.0.0",
-    "mqtt-wildcard": "^3.0.9",
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
     "lodash": "^4.17.15"
