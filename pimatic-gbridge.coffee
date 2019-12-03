@@ -179,12 +179,14 @@ module.exports = (env) ->
               if _adapter?
                 _adapter.publishState()
           else
-            for adapter in @adapters
-              if String adapter.gBridgeDeviceId == String _device_id
+            for _device in @config.devices
+              _adapter = @adapters[_device.pimatic_device_id]
+              #env.logger.info "adapter " + JSON.stringify(_adapter) + ", _device_id: " + _device_id
+              if String _adapter.gBridgeDeviceId == String _device_id
                 if topic.endsWith('/set')
                   env.logger.debug "/set received for gbridge device #{_device_id}, no action"
                 else
-                  adapter.executeAction(_trait, _value)
+                  _adapter.executeAction(_trait, _value)
 
       @framework.on "deviceRemoved", (device) =>
         if _.find(@config.devices, (d) => d.pimatic_device_id == device.id)
