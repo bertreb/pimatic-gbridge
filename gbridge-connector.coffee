@@ -93,6 +93,9 @@ module.exports = (env) ->
 
     updateDevice: (device, device_id) =>
       return new Promise( (resolve,reject) =>
+        if not device_id?
+          ebv.logger.error "device_id undefined"
+          reject()
         options =
           uri: @gbridgeApiUrl + '/device/' + device_id
           method: 'PATCH'

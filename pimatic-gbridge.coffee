@@ -35,11 +35,11 @@ module.exports = (env) ->
 
   class GbridgeDevice extends env.devices.PresenceSensor
 
-    constructor: (config, lastState, @framework, @plugin) ->
-      @config = config
+    constructor: (@config, lastState, @framework, @plugin) ->
+      #@config = config
       @id = @config.id
       @name = @config.name
-      @config.devices = config.devices
+      #@config.devices = config.devices
 
       @devMgr = @framework.deviceManager
       @gbridgeDevices = []
@@ -134,13 +134,13 @@ module.exports = (env) ->
         env.logger.debug "gbridge connected"
         @framework.variableManager.waitForInit()
         .then () =>
-          @addAdapters()
-          .then () =>
-            env.logger.debug "Adapters added"
-            @gbridgeConnector.getDevices()
-            .then (devices) =>
-              env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
-              @gbridgeDevices = devices
+          @gbridgeConnector.getDevices()
+          .then (devices) =>
+            @gbridgeDevices = devices
+            env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
+            @addAdapters()
+            .then () =>
+              env.logger.debug "Adapters added"
               @syncDevices()
               .then () =>
                 if @config.devices.length is 0
@@ -176,16 +176,16 @@ module.exports = (env) ->
           when "QUERY"
             env.logger.debug "device_id: " + _device_id + ", message: " + message + ", " + JSON.stringify(packet)
             for _device in @config.devices
-              _adapter = @getAdapter(_device.pimatic_device_id)
+              _adapter = @adapters[_device.pimatic_device_id]
               if _adapter?
                 _adapter.publishState()
           else
-            adapter = @getAdapter(_device_id)
-            if adapter?
-              if topic.endsWith('/set')
-                env.logger.debug "/set received for gbridge device #{_device_id}, no action"
-              else
-                adapter.executeAction(_trait, _value)
+            for adapter in @adapters
+              if String adapter.gBridgeDeviceId == String _device_id
+                if topic.endsWith('/set')
+                  env.logger.debug "/set received for gbridge device #{_device_id}, no action"
+                else
+                  adapter.executeAction(_trait, _value)
 
       @framework.on "deviceRemoved", (device) =>
         if _.find(@config.devices, (d) => d.pimatic_device_id == device.id)
@@ -209,16 +209,24 @@ module.exports = (env) ->
         env.logger.info "Gbridge offline"
         @emit 'presence', false
 
-    getAdapter: (deviceId) =>
-      _adapter1 = _.find(@adapters, (d) => (String d.pimatic_device_id).localeCompare(String deviceId)) # if deviceId is pimaticDevice.id (d) => ((String (d.gbridgeDeviceId)).match(String deviceId)))
-      if _adapter1?
-        env.logger.debug "gBridgeDeviceID match1 found"
-        return _adapter1
-      _adapter2 = _.find(@adapters, (d) => (String d.gbridgeDeviceId).localeCompare(String deviceId))
-      if _adapter2?
-        env.logger.debug "pimaticDeviceID match2 found"
-        return _adapter2
-      return undefined
+    _addAdapter: (pimatic_divice_id, newAdapter) =>
+      @adapters[pimatic_divice_id] = newAdapter
+
+    _getAdapter: (device_id) =>
+      adapter = @adapters[device_id]
+      if adapter?
+        return adapter
+      else
+        for adapter2 of @adapters
+          if String adapter2.gbridgeDeviceId == String device_id
+            return adapter2
+        env.logger.error "Adapter for device id: '#{device_id}' not found"
+        return undefined
+
+    getGbridgeDeviceId: (pimatic_device_name) =>
+      for gbridgeDevice in @gbridgeDevices
+        if gbridgeDevice.name == pimatic_device_name
+          return gbridgeDevice.id
 
     addAdapters: () =>
       return new Promise( (resolve,reject) =>
@@ -226,22 +234,21 @@ module.exports = (env) ->
           pimaticDevice = @devMgr.getDeviceById(_value.pimatic_device_id)
           unless pimaticDevice?
             reject()
-          @config.devices[key].gbridge_device_id = 0 unless _value.pimatic_device_id?
 
           _adapterConfig =
             mqttConnector: @mqttConnector
             pimaticDevice: pimaticDevice
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
-            gbridgeDeviceId: if _value.gbridge_device_id? then _value.gbridge_device_id else 0
+            gbridgeDeviceId: @getGbridgeDeviceId(_value.name)
             twoFa: _value.twofa
             #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
           if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
-            @adapters[String pimaticDevice.id] = new lightAdapter(_adapterConfig)
+            @adapters[_value.pimatic_device_id] = new lightAdapter(_adapterConfig)
           else if pimaticDevice instanceof env.devices.SwitchActuator
             env.logger.debug "Add switch adapter with ID: " + pimaticDevice.id
-            @adapters[String pimaticDevice.id] = new switchAdapter(_adapterConfig)
+            @adapters[_value.pimatic_device_id] = new switchAdapter(_adapterConfig)
           else if pimaticDevice instanceof env.devices.HeatingThermostat
             env.logger.debug "Device type HeatingThermostat not implemented"
           else if pimaticDevice instanceof env.devices.ShutterController
@@ -259,7 +266,8 @@ module.exports = (env) ->
 
         if @config.devices? and @gbridgeDevices?
           for _device in @config.devices
-            if !@inArray(_device.name, @gbridgeDevices)
+            if !_.find(@gbridgeDevices, (d) => 
+              d.name == _device.name)
               gbridgeAdditions.push _device
             # check if the twofa changed and an update is needed       
             else
@@ -269,7 +277,8 @@ module.exports = (env) ->
                 if (_gbridgeDevice.name is _device.name) and (gbridgeTwofa isnt deviceTwofa)
                   gbridgeUpdates.push _device
           for _gbridgeDevice in @gbridgeDevices
-            if !@inArray(_gbridgeDevice.name, @config.devices)
+            if  !_.find(@config.devices, (d) =>
+              d.name == _gbridgeDevice.name)
               gbridgeRemovals.push _gbridgeDevice
 
           env.logger.debug "gbridgeAdditions: " + JSON.stringify(gbridgeAdditions)
@@ -277,7 +286,7 @@ module.exports = (env) ->
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
 
           for _device in gbridgeAdditions
-            adapter = @getAdapter(_device.pimatic_device_id)
+            adapter = @_getAdapter(_device.pimatic_device_id)
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.pimatic_device_id}'"
               reject()
@@ -291,7 +300,7 @@ module.exports = (env) ->
             .then (device) =>
               for _value, key in @config.devices
                 if _value.name is device.name
-                  @config.devices[key]["gbridge_device_id"] = device.id
+                  #@config.devices[key]["gbridge_device_id"] = device.id
                   @adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
                   env.logger.debug "Device '#{_device.name}' updated with gbridgeId '#{device.id}'"
             .catch (err) =>
@@ -299,7 +308,7 @@ module.exports = (env) ->
               reject()
 
           for _device in gbridgeUpdates
-            adapter = @getAdapter(_device.id)
+            adapter = @adapters[_device.pimatic_device_id]
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.gbridge_device_id}'"
               reject()
@@ -309,8 +318,8 @@ module.exports = (env) ->
               type: adapter.getType()
               traits: adapter.getTraits()
               twofa: adapter.getTwoFa()
-            env.logger.debug "Updating device: '" + _device.name + "' with " + JSON.stringify(_deviceUpdate) + " and gbridgeID " + _device.gbridge_device_id
-            @gbridgeConnector.updateDevice(_deviceUpdate, _device.gbridge_device_id)
+            env.logger.debug "Updating device: '" + _device.name + "' with " + JSON.stringify(_deviceUpdate) + " and gbridgeID " + @getGbridgeDeviceId(_device.name)
+            @gbridgeConnector.updateDevice(_deviceUpdate, @getGbridgeDeviceId(_device.name))
             .then (device) =>
               env.logger.debug "config.device updated with gbridge.device_id: " + device.id
               env.logger.debug "Device updated"
@@ -337,7 +346,7 @@ module.exports = (env) ->
     inArray: (value, array) ->
       if value? and array?
         for _value in array
-          if value == _value.name
+          if value.localeCompare(_value.name)
             return true
       return false
 

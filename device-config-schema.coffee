@@ -21,11 +21,6 @@ module.exports = {
               descpription: "the pimatic device ID"
               type: "string"
               required: true
-            gbridge_device_id:
-              descpription: "The gBrigde device ID. Is automatically added"
-              type: "number"
-              required: true
-              default: 0
             twofa:
               description: "Two-step confirmation. Google Assistant will ask for confirmation"
               enum: ["none", "ack"]
