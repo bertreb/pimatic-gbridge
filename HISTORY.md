@@ -19,4 +19,6 @@
 	* improved logging and mqtt handling
 	* code fixes
 	* removed update of device confirmation
-	* not yet ready for testing
+* 20191203, v0.2.7
+	* getting all device info from gbridge
+	* testing version

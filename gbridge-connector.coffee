@@ -3,6 +3,7 @@ module.exports = (env) ->
   rp = require 'request-promise'
   Promise = env.require 'bluebird'
   events = require 'events'
+  _ = require 'lodash'
 
 
   class GbridgeConnector extends events.EventEmitter
@@ -26,6 +27,7 @@ module.exports = (env) ->
 
     getDevices: () =>
       return new Promise( (resolve,reject) =>
+        @devices = []
         options =
           uri: @gbridgeApiUrl + "/device"
           method: 'GET'
@@ -33,9 +35,25 @@ module.exports = (env) ->
             bearer: @accessToken
           json: true
         rp(options)
-        .then (devices) =>
-          env.logger.debug devices.length + " gbridge devices received"
-          resolve(devices)
+        .then (_devices) =>
+          @count = _.size(_devices)
+          if @count is 0 then resolve(@devices)
+          for _device in _devices
+            options2 = 
+              uri: @gbridgeApiUrl + "/device/" + _device.device_id
+              method: 'GET'
+              auth:
+                bearer: @accessToken
+              json: true
+            rp(options2)
+            .then (device) =>
+              @devices.push device
+              @count -= 1
+              if @count is 0
+                resolve(@devices)
+            .catch (err) =>
+              env.logger.error err
+              reject()
         .catch (err) =>
           env.logger.error err
           reject(err)
@@ -83,22 +101,22 @@ module.exports = (env) ->
             bearer: @accessToken
           json: true
         rp(options).then((device) =>
-          resolve()
+          resolve(device)
         ).catch((err) =>
           reject(err)
         )
       )
 
-    removeDevice: (device) =>
+    removeDevice: (device_id) =>
       return new Promise( (resolve,reject) =>
         options =
-          uri: @gbridgeApiUrl + '/device/' + device.device_id
+          uri: @gbridgeApiUrl + '/device/' + device_id
           method: 'DELETE'
           auth:
             bearer: @accessToken
           json: true
         rp(options).then(() =>
-          resolve(device)
+          resolve()
         ).catch((err) =>
           reject(err)
         )
