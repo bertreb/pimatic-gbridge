@@ -3,7 +3,7 @@ module.exports = (env) ->
   assert = env.require 'cassert'
   events = require 'events'
 
-  class SwitchAdapter extends events.EventEmitter
+  class ButtonAdapter extends events.EventEmitter
 
     constructor: (adapterConfig) ->
 
@@ -34,7 +34,12 @@ module.exports = (env) ->
       switch type
         when 'onoff'
           env.logger.debug "Execute action for device " + @device.id + ", set state: " + value
-          @device.changeStateTo(Boolean value>0)
+          if Boolean value>0
+            env.logger.debug "@subDeviceId: " + @subDeviceId
+            @device.buttonPressed(@subDeviceId).then(() =>
+            ).catch((err) =>
+              env.logger.error "error: " + err
+            )
         when 'requestsync'
           env.logger.debug "Requestsync -> publish state for device " + @device.id + ", set state: " + value
           @publishState()
@@ -43,7 +48,7 @@ module.exports = (env) ->
 
     publishState: () =>
       _mqttHeader = @getTopic() + '/onoff/set'
-      @device.getState().then((state) =>
+      @device.getButton().then((state) =>
         env.logger.debug "Publish state, mqttHeader: " + _mqttHeader + ", state: " + state
         @mqttConnector.publish(_mqttHeader, String state)
       ).catch((err) =>

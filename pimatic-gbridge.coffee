@@ -6,6 +6,7 @@ module.exports = (env) ->
   gbridgeConnector = require('./gbridge-connector')(env)
   switchAdapter = require('./adapters/switch')(env)
   lightAdapter = require('./adapters/light')(env)
+  buttonAdapter = require('./adapters/button')(env)
   mqtt = require('mqtt')
   _ = require('lodash')
 
@@ -42,16 +43,16 @@ module.exports = (env) ->
 
       @devMgr = @framework.deviceManager
       @gbridgeDevices = []
-      @adapters = {}
+      @adapters = []
       @debug = @plugin.config?.debug or false
 
       checkMultipleDevices = []
       for _device in @config.devices
         do(_device) =>
-          if _.find(checkMultipleDevices, (d) => d is _device.pimatic_device_id)?
+          if _.find(checkMultipleDevices, (d) => d.pimatic_device_id is _device.pimatic_device_id and d.pimatic_subdevice_id is _device.pimatic_device_id)?
             throw new Error "#{_device.pimatic_device_id} is already used"
           else
-            checkMultipleDevices.push _device.pimatic_device_id
+            checkMultipleDevices.push _device
 
       @_gbridgeConnected = false
       @_mqttConnected = false
@@ -80,6 +81,7 @@ module.exports = (env) ->
       else
         @mqttOptions["protocolId"] = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 
+
       @framework.variableManager.waitForInit()
       .then () =>
         for _device in @config.devices
@@ -88,14 +90,18 @@ module.exports = (env) ->
             #device type implemented
           else if device instanceof env.devices.SwitchActuator
             #device type implemented
+          else if device instanceof env.devices.ButtonsDevice
+            unless _.find(device.config.buttons, (btn) => btn.id == _device.pimatic_subdevice_id)
+              throw new Error "Button #{_device.pimatic_subdevice_id} does not exist"
+            #device type and id implemented
           else if device instanceof env.devices.HeatingThermostat
             throw new Error "Device type HeatingThermostat not implemented"
           else if device instanceof env.devices.ShutterController
             throw new Error "Device type ShutterController not implemented"
           else
-            throw new Error "Device type does not exist"
-
-
+            throw new Error "Init: Device type of device #{_device.id} does not exist"
+      .catch (err) =>
+        env.logger.error "Error: " + err
 
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
@@ -174,14 +180,16 @@ module.exports = (env) ->
           when "QUERY"
             env.logger.debug "device_id: " + _device_id + ", message: " + message + ", " + JSON.stringify(packet)
             for _device in @config.devices
-              _adapter = @adapters[_device.pimatic_device_id]
+              _adapter = @getAdapter(_device)
+              #_adapter = @adapters[_device.pimatic_device_id]
               if _adapter?
                 _adapter.publishState()
           else
             for _device in @config.devices
-              _adapter = @adapters[_device.pimatic_device_id]
+              _adapter = @getAdapter(_device)
+              #_adapter = @adapters[_device.pimatic_device_id]
               if _adapter?
-                if _adapter.getGbridgeDeviceId() == _device_id
+                if _adapter.gbridgeDeviceId == _device_id
                   if topic.endsWith('/set')
                     env.logger.debug "/set received for gbridge device #{_device_id}, no action"
                   else
@@ -211,6 +219,7 @@ module.exports = (env) ->
         env.logger.info "Gbridge offline"
         @emit 'presence', false
 
+    ###
     _addAdapter: (pimatic_divice_id, newAdapter) =>
       @adapters[pimatic_divice_id] = newAdapter
 
@@ -224,6 +233,7 @@ module.exports = (env) ->
             return adapter2
         env.logger.error "Adapter for device id: '#{device_id}' not found"
         return undefined
+    ###
 
     getGbridgeDeviceId: (pimatic_device_name) =>
       for gbridgeDevice in @gbridgeDevices
@@ -240,6 +250,7 @@ module.exports = (env) ->
           _adapterConfig =
             mqttConnector: @mqttConnector
             pimaticDevice: pimaticDevice
+            pimaticSubDeviceId: _value.pimatic_subdevice_id
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: @getGbridgeDeviceId(_value.name)
@@ -247,16 +258,22 @@ module.exports = (env) ->
             #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
           if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
-            @adapters[_value.pimatic_device_id] = new lightAdapter(_adapterConfig)
+            @addAdapter(new lightAdapter(_adapterConfig))
+            #@adapters[_value.pimatic_device_id] = new lightAdapter(_adapterConfig)
           else if pimaticDevice instanceof env.devices.SwitchActuator
             env.logger.debug "Add switch adapter with ID: " + pimaticDevice.id
-            @adapters[_value.pimatic_device_id] = new switchAdapter(_adapterConfig)
+            @addAdapter(new switchAdapter(_adapterConfig))
+            #@adapters[_value.pimatic_device_id] = new switchAdapter(_adapterConfig)
+          else if pimaticDevice instanceof env.devices.ButtonsDevice
+            env.logger.debug "Add button adapter with ID: " + pimaticDevice.id
+            @addAdapter(new buttonAdapter(_adapterConfig))
+            #@adapters[_value.pimatic_device_id] = new buttonAdapter(_adapterConfig)
           else if pimaticDevice instanceof env.devices.HeatingThermostat
             env.logger.debug "Device type HeatingThermostat not implemented"
           else if pimaticDevice instanceof env.devices.ShutterController
             env.logger.debug "Device type ShutterController not implemented"
           else
-            env.logger.error "Device type does not exist"
+            env.logger.error "AddAdapters: Device type does not exist"
         resolve()
       )
 
@@ -288,7 +305,8 @@ module.exports = (env) ->
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
 
           for _device in gbridgeAdditions
-            adapter = @_getAdapter(_device.pimatic_device_id)
+            env.logger.info "_device: " + JSON.stringify(_device,null,2)
+            adapter = @getAdapter(_device)
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.pimatic_device_id}'"
               reject()
@@ -303,14 +321,16 @@ module.exports = (env) ->
               for _value, key in @config.devices
                 if _value.name is device.name
                   #@config.devices[key]["gbridge_device_id"] = device.id
-                  @adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
+                  _adapter = @getAdapter(_value)
+                  _adapter.setGbridgeDeviceId(device.id)
+                  #@adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
                   env.logger.debug "Device '#{_device.name}' updated with gbridgeId '#{device.id}'"
             .catch (err) =>
               env.logger.error "Error: updating gbridge_device_id: " + JSON.stringify(err,null,2)
               reject()
 
           for _device in gbridgeUpdates
-            adapter = @adapters[_device.pimatic_device_id]
+            adapter = @getAdapter(_device) #@adapters[_device.pimatic_device_id]
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.gbridge_device_id}'"
               reject()
@@ -329,7 +349,6 @@ module.exports = (env) ->
               env.logger.error "Device not updated: " + JSON.stringify(err,null,2)
               reject()
 
-
           for _deviceRemove in gbridgeRemovals
             env.logger.debug "GbridgeDevice: '" + _deviceRemove.name + "' not found in Config, removing from gBridge"
             @gbridgeConnector.removeDevice(_deviceRemove.id)
@@ -345,6 +364,18 @@ module.exports = (env) ->
         resolve()
       )
 
+    getAdapter: (_device) =>
+      adapter = _.find(@adapters, (a) =>
+        return a.device.id is _device.pimatic_device_id and
+          a.subDeviceId is _device.pimatic_subdevice_id)
+      if adapter?
+        return adapter
+      else
+        return null
+
+    addAdapter: (_adapter) =>
+      @adapters.push _adapter
+
     inArray: (value, array) ->
       if value? and array?
         for _value in array
@@ -353,8 +384,9 @@ module.exports = (env) ->
       return false
 
     destroy: ->
-      for adapter of @adapters
-        delete adapters
+      for adapter in @adapters
+        adapter.destroy()
+      @adapters = []
       if @mqttConnector?
         @mqttConnector.removeAllListeners()
         @mqttConnector.end()

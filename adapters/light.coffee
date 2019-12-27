@@ -8,6 +8,7 @@ module.exports = (env) ->
     constructor: (adapterConfig) ->
 
       @device = adapterConfig.pimaticDevice
+      @subDeviceId = adapterConfig.pimaticSubDeviceId
       @topicPrefix = adapterConfig.mqttPrefix
       @topicUser = adapterConfig.mqttUser
       @gbridgeDeviceId = Number adapterConfig.gbridgeDeviceId
@@ -106,3 +107,4 @@ module.exports = (env) ->
     destroy: ->
       @device.removeListener 'state', deviceHandler
       @device.removeListener 'dimlevel', deviceHandler
+  
