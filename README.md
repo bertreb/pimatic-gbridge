@@ -1,7 +1,7 @@
 pimatic-gbridge
 ===================
 The gBridge plugin lets you connect a Pimatic home automation system with a Google assistant via gBridge.
-
+When you add a supported Pimatic device to the gBridgeDevice devicelist, the device is automatically added in gBridge and Google Assistant.
 
 gBridge is a MQTT broker that 'works with Google'. First you create a gBridge account, connect your google (assistant) account to gBridge and obtaining an API key. Then you can configure the plugin and add devices to be controlled via Google Assistant. Details for setup and configuration at https://about.gbridge.io.
 The number of supported devices is depending on the gBridge plan you've got. The free plan allows 4 devices and the paid plan gives an unlimited number of devices.
@@ -40,17 +40,17 @@ Gbridge device
 When the plugin is installed (including restart) a Gbridge device can be added.
 
 Below the settings with the default values. In the devices your configure which Pimatic devices will be controlled by Google Assistant and what name they get. The name is visible in the Google Assistant and is the name you use in voice commands.
-In this release the SwitchActuator and DimmerActuator based Pimatic devices are supported.
+In this release the SwitchActuator, DimmerActuator and ButtonsDevice based Pimatic devices are supported.
 When there's at least 1 device in the config, the dot will go present after a connection to gBridge and the mqtt server is made.
 
 ```
 {
   "id": "<gbridge-device-id>",
   "class": "GbridgeDevice",
-        devices:  "list of devices connected to Google Assistant"
-          name:              "the gBridge device name, and command used in Google Assistant"
-          pimatic_device_id: "the ID of the pimatic device"
-          twofa:             "Two-step confirmation. Google Assistant will ask for confirmation"
+    devices:  "list of devices connected to Google Assistant"
+      name:                 "the gBridge device name, and command used in Google Assistant"
+      pimatic_device_id:    "the ID of the pimatic device"
+      pimatic_subdevice_id: "the ID of the pimatic subdevice, like a button id"        twofa:                 "Two-step confirmation. Google Assistant will ask for confirmation"
                               ["none", "ack"] default: "none"
 }
 ```
