@@ -21,6 +21,10 @@ module.exports = {
               descpription: "the pimatic device ID"
               type: "string"
               required: true
+            pimatic_subdevice_id:
+              description: " the ID of the subdevice like a button name"
+              type: "string"
+              required: false
             twofa:
               description: "Two-step confirmation. Google Assistant will ask for confirmation"
               enum: ["none", "ack"]
