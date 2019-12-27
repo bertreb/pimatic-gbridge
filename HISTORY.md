@@ -24,6 +24,6 @@
 	* remove gbridge id from config
 	* error handling and fixes
 	* testing version
-* 20191227, v0.2.13
+* 20191227, v0.2.14
 	* added button device
 	* updated readme

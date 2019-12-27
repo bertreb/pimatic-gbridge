@@ -305,7 +305,7 @@ module.exports = (env) ->
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
 
           for _device in gbridgeAdditions
-            env.logger.info "_device: " + JSON.stringify(_device,null,2)
+            #env.logger.info "_device: " + JSON.stringify(_device,null,2)
             adapter = @getAdapter(_device)
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.pimatic_device_id}'"
