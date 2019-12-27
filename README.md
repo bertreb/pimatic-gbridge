@@ -50,7 +50,8 @@ When there's at least 1 device in the config, the dot will go present after a co
     devices:  "list of devices connected to Google Assistant"
       name:                 "the gBridge device name, and command used in Google Assistant"
       pimatic_device_id:    "the ID of the pimatic device"
-      pimatic_subdevice_id: "the ID of the pimatic subdevice, like a button id"        twofa:                 "Two-step confirmation. Google Assistant will ask for confirmation"
+      pimatic_subdevice_id: "the ID of the pimatic subdevice, like a button id"        
+      twofa:                 "Two-step confirmation. Google Assistant will ask for confirmation"
                               ["none", "ack"] default: "none"
 }
 ```
