@@ -27,3 +27,6 @@
 * 20191227, v0.2.14
 	* added button device
 	* updated readme
+* 20191229, v0.2.15
+	* added button device
+	* updated readme

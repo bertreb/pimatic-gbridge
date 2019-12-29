@@ -105,6 +105,5 @@ module.exports = (env) ->
       return _twoFa
 
     destroy: ->
-      @device.removeListener 'state', deviceHandler
-      @device.removeListener 'dimlevel', deviceHandler
-  
+      @device.removeListener 'state', deviceStateHandler
+      @device.removeListener 'dimlevel', deviceDimlevelHandler
