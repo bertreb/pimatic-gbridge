@@ -7,6 +7,7 @@ module.exports = (env) ->
   switchAdapter = require('./adapters/switch')(env)
   lightAdapter = require('./adapters/light')(env)
   buttonAdapter = require('./adapters/button')(env)
+  shutterAdapter = require('./adapters/shutter')(env)
   mqtt = require('mqtt')
   _ = require('lodash')
 
@@ -58,6 +59,34 @@ module.exports = (env) ->
       @_mqttConnected = false
       @emit 'presence', false
 
+      ### URL / options layout
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │                                              href                                              │
+      ├──────────┬──┬─────────────────────┬────────────────────────┬───────────────────────────┬───────┤
+      │ protocol │  │        auth         │          host          │           path            │ hash  │
+      │          │  │                     ├─────────────────┬──────┼──────────┬────────────────┤       │
+      │          │  │                     │    hostname     │ port │ pathname │     search     │       │
+      │          │  │                     │                 │      │          ├─┬──────────────┤       │
+      │          │  │                     │                 │      │          │ │    query     │       │
+      "  https:   //    user   :   pass   @ sub.example.com : 8080   /p/a/t/h  ?  query=string   #hash "
+      │          │  │          │          │    hostname     │ port │          │                │       │
+      │          │  │          │          ├─────────────────┴──────┤          │                │       │
+      │ protocol │  │ username │ password │          host          │          │                │       │
+      ├──────────┴──┼──────────┴──────────┼────────────────────────┤          │                │       │
+      │   origin    │                     │         origin         │ pathname │     search     │ hash  │
+      ├─────────────┴─────────────────────┴────────────────────────┴──────────┴────────────────┴───────┤
+      │                                              href                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+      MQTTjs interface definitions
+
+      port?: number // port is made into a number subsequently
+      host?: string // host does NOT include port
+      hostname?: string
+      path?: string
+      protocol?: 'wss' | 'ws' | 'mqtt' | 'mqtts' | 'tcp' | 'ssl' | 'wx' | 'wxs'
+
+      ###
       @mqttOptions =
           host: @plugin.config?.mqttServer or @plugin.configProperties.mqttServer.default
           port: 1883
@@ -90,14 +119,14 @@ module.exports = (env) ->
             #device type implemented
           else if device instanceof env.devices.SwitchActuator
             #device type implemented
+          else if device instanceof env.devices.ShutterController
+            #device type implemented
           else if device instanceof env.devices.ButtonsDevice
             unless _.find(device.config.buttons, (btn) => btn.id == _device.pimatic_subdevice_id)
               throw new Error "Button #{_device.pimatic_subdevice_id} does not exist"
             #device type and id implemented
           else if device instanceof env.devices.HeatingThermostat
             throw new Error "Device type HeatingThermostat not implemented"
-          else if device instanceof env.devices.ShutterController
-            throw new Error "Device type ShutterController not implemented"
           else
             throw new Error "Init: Device type of device #{_device.id} does not exist"
       .catch (err) =>
@@ -105,6 +134,7 @@ module.exports = (env) ->
 
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
+
 
       @mqttConnector = new mqtt.connect(@mqttOptions)
       @mqttConnector.on "connect", () =>
@@ -271,7 +301,8 @@ module.exports = (env) ->
           else if pimaticDevice instanceof env.devices.HeatingThermostat
             env.logger.debug "Device type HeatingThermostat not implemented"
           else if pimaticDevice instanceof env.devices.ShutterController
-            env.logger.debug "Device type ShutterController not implemented"
+            env.logger.debug "Add shutter adapter with ID: " + pimaticDevice.id
+            @addAdapter(new shutterAdapter(_adapterConfig))
           else
             env.logger.error "AddAdapters: Device type does not exist"
         resolve()
