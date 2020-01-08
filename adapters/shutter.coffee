@@ -56,7 +56,18 @@ module.exports = (env) ->
                 # the *entire* stdout and stderr (buffered)
                 env.logger.debug "stdout: #{stdout}"
                 env.logger.debug "stderr: #{stderr}"
-                @position = Number stdout
+                try
+                  returnJson = JSON.parse(stdout)
+                  if returnJson.current_pos?
+                    _position = Number returnJson.current_pos
+                  else if returnJson.position?
+                    _position = Number returnJson.position                 
+                catch e
+                  env.logger.error "Return value from shutter unknown, " + e
+                  _position = 0
+                
+                @position = _position
+                env.logger.debug "Received position: " + @position
             )
           env.logger.debug "Shutter moved from #{@position} to #{value}"
         when 'requestsync'
