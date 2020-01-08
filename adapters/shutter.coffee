@@ -47,22 +47,18 @@ module.exports = (env) ->
             value=Math.max(0,value)
             value = Math.min(100,value)
             command = @positionCommand + " #{value}"
-            childProcess.exec(command, (err, stdout, stderr) => 
-              if (err) 
+            childProcess.exec(command, (err, stdout, stderr) =>
+              if (err)
                 #some err occurred
                 env.logger.error "Error in Shutter adapter aux command " + err
                 return
-              else 
+              else
                 # the *entire* stdout and stderr (buffered)
                 env.logger.debug "stdout: #{stdout}"
                 env.logger.debug "stderr: #{stderr}"
                 @position = Number stdout
             )
-
-          #_move = value - @position
           env.logger.debug "Shutter moved from #{@position} to #{value}"
-          #@device.moveByPercentage(_move)
-          #@device.changeStateTo(Boolean value>0) # moveToPosition??????
         when 'requestsync'
           env.logger.debug "Requestsync -> publish state for device " + @device.id + ", set state: " + value
           @publishState()
@@ -71,12 +67,8 @@ module.exports = (env) ->
 
     publishState: () =>
       _mqttHeader = @getTopic() + '/openclose/set'
-      #@getPosition().then((state) =>
       env.logger.debug "Publish position, mqttHeader: " + _mqttHeader + ", position: " + @position
       @mqttConnector.publish(_mqttHeader, String @position)
-      #).catch((err) =>
-      #  env.logger.error "STATE:" + err.message
-      #)
 
     setGbridgeDeviceId: (deviceId) =>
       @gbridgeDeviceId = deviceId
