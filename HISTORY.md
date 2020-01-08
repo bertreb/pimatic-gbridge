@@ -30,5 +30,5 @@
 * 20191229, v0.2.15
 	* added button device
 	* updated readme
-* 20200107, v0.2.17
+* 20200107, v0.2.18
 	* added shutter device

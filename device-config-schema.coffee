@@ -25,6 +25,10 @@ module.exports = {
               description: " the ID of the subdevice like a button name"
               type: "string"
               required: false
+            auxiliary:
+              description: "adapter specific field to add functionality to the bridge"
+              type: "string"
+              required: false
             twofa:
               description: "Two-step confirmation. Google Assistant will ask for confirmation"
               enum: ["none", "ack"]

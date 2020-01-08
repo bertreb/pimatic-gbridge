@@ -2,6 +2,8 @@ module.exports = (env) ->
   Promise = env.require 'bluebird'
   assert = env.require 'cassert'
   events = require 'events'
+  childProcess = require("child_process")
+
 
   class ShutterAdapter extends events.EventEmitter
 
@@ -13,13 +15,12 @@ module.exports = (env) ->
       @topicUser = adapterConfig.mqttUser
       @gbridgeDeviceId = Number adapterConfig.gbridgeDeviceId
       @mqttConnector = adapterConfig.mqttConnector
+      @positionCommand = adapterConfig.auxiliary
 
       @twoFa = adapterConfig.twoFa
       @twoFaPin = adapterConfig.twoFaPin
 
       @position = 0
-      env.logger.debug "Closing the shutters to sync"
-      @device.moveByPercentage(-100)
 
       @device.on "state", deviceStateHandler
       @device.system = @
@@ -42,10 +43,25 @@ module.exports = (env) ->
           if @position is value
             env.logger.debug "Shutter already in requested postion"
             return
-          _move = value - @position
+          if @positionCommand?
+            value=Math.max(0,value)
+            value = Math.min(100,value)
+            command = @positionCommand + " #{value}"
+            childProcess.exec(command, (err, stdout, stderr) => 
+              if (err) 
+                #some err occurred
+                env.logger.error "Error in Shutter adapter aux command " + err
+                return
+              else 
+                # the *entire* stdout and stderr (buffered)
+                env.logger.debug "stdout: #{stdout}"
+                env.logger.debug "stderr: #{stderr}"
+                @position = Number stdout
+            )
+
+          #_move = value - @position
           env.logger.debug "Shutter moved from #{@position} to #{value}"
-          @device.moveByPercentage(_move)
-          @position = value
+          #@device.moveByPercentage(_move)
           #@device.changeStateTo(Boolean value>0) # moveToPosition??????
         when 'requestsync'
           env.logger.debug "Requestsync -> publish state for device " + @device.id + ", set state: " + value

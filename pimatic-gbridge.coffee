@@ -280,11 +280,13 @@ module.exports = (env) ->
           _adapterConfig =
             mqttConnector: @mqttConnector
             pimaticDevice: pimaticDevice
-            pimaticSubDeviceId: _value.pimatic_subdevice_id
+            pimaticSubDeviceId: _value.pimatic_subdevice_id 
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: @getGbridgeDeviceId(_value.name)
+            auxiliary: _value.auxiliary
             twoFa: _value.twofa
+
             #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
           if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
