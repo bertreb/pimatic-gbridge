@@ -40,8 +40,10 @@ Gbridge device
 After the plugin is installed a Gbridge device can be added.
 
 Below the settings with the default values. In the devices your configure which Pimatic devices will be controlled by Google Assistant and what name they get. The name is visible in the Google Assistant and is the name you use in voice commands.
-In this release the SwitchActuator, DimmerActuator, ButtonsDevice and ShutterController based Pimatic devices are supported.
+In this release the SwitchActuator, DimmerActuator, ButtonsDevice, ShutterController and Milight (RGBWZone and FullColorZone) based Pimatic devices are supported.
 When there's at least 1 device in the config, the dot will go present after a connection to gBridge and the mqtt server is made.
+
+For the Milight devices automatic configuration is not implemented. You need to configure the milight device in gBridge (with the traits 'OnOff', 'Brightness' and 'colorsettingrgb') and after that configure(add) the milight device in config of the gBridge device in Pimatic. The name you used for the Milight device in gBridge must by exactly the same as the name in pimatic gBridge!
 
 ```
 {
