@@ -6,8 +6,10 @@ module.exports = (env) ->
   gbridgeConnector = require('./gbridge-connector')(env)
   switchAdapter = require('./adapters/switch')(env)
   lightAdapter = require('./adapters/light')(env)
+  lightColorAdapter = require('./adapters/lightcolor')(env)
   buttonAdapter = require('./adapters/button')(env)
   shutterAdapter = require('./adapters/shutter')(env)
+  #heatingThermostatAdapter = require('./adapters/heatingthermostat')(env)
   mqtt = require('mqtt')
   _ = require('lodash')
 
@@ -115,7 +117,9 @@ module.exports = (env) ->
       .then () =>
         for _device in @config.devices
           device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
-          if device instanceof env.devices.DimmerActuator
+          if device.config.class is "MilightRGBWZone" or device.config.class is "MilightFullColorZone"
+            #device type implemented
+          else if device instanceof env.devices.DimmerActuator
             #device type implemented
           else if device instanceof env.devices.SwitchActuator
             #device type implemented
@@ -130,7 +134,7 @@ module.exports = (env) ->
           else
             throw new Error "Init: Device type of device #{_device.id} does not exist"
       .catch (err) =>
-        env.logger.error "Error: " + err
+        env.logger.error "error: " + err.message
 
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
@@ -280,7 +284,7 @@ module.exports = (env) ->
           _adapterConfig =
             mqttConnector: @mqttConnector
             pimaticDevice: pimaticDevice
-            pimaticSubDeviceId: _value.pimatic_subdevice_id 
+            pimaticSubDeviceId: _value.pimatic_subdevice_id
             mqttPrefix: @plugin.gbridgePrefix
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: @getGbridgeDeviceId(_value.name)
@@ -288,20 +292,21 @@ module.exports = (env) ->
             twoFa: _value.twofa
 
             #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
-          if pimaticDevice instanceof env.devices.DimmerActuator
+          if pimaticDevice.config.class is "MilightRGBWZone" or pimaticDevice.config.class is "MilightFullColorZone"
+            env.logger.debug "Add MilightRGBWZone adapter with ID: " + pimaticDevice.id
+            @addAdapter(new lightColorAdapter(_adapterConfig))
+          else if pimaticDevice instanceof env.devices.DimmerActuator
             env.logger.debug "Add light adapter with ID: " + pimaticDevice.id
             @addAdapter(new lightAdapter(_adapterConfig))
-            #@adapters[_value.pimatic_device_id] = new lightAdapter(_adapterConfig)
           else if pimaticDevice instanceof env.devices.SwitchActuator
             env.logger.debug "Add switch adapter with ID: " + pimaticDevice.id
             @addAdapter(new switchAdapter(_adapterConfig))
-            #@adapters[_value.pimatic_device_id] = new switchAdapter(_adapterConfig)
           else if pimaticDevice instanceof env.devices.ButtonsDevice
             env.logger.debug "Add button adapter with ID: " + pimaticDevice.id
             @addAdapter(new buttonAdapter(_adapterConfig))
-            #@adapters[_value.pimatic_device_id] = new buttonAdapter(_adapterConfig)
-          else if pimaticDevice instanceof env.devices.HeatingThermostat
-            env.logger.debug "Device type HeatingThermostat not implemented"
+          #else if pimaticDevice instanceof env.devices.HeatingThermostat
+          #  env.logger.debug "Add heatingThermostat adapter with ID: " + pimaticDevice.id
+          #  @addAdapter(new heatingThermostatAdapter(_adapterConfig))
           else if pimaticDevice instanceof env.devices.ShutterController
             env.logger.debug "Add shutter adapter with ID: " + pimaticDevice.id
             @addAdapter(new shutterAdapter(_adapterConfig))
@@ -359,7 +364,12 @@ module.exports = (env) ->
                   #@adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
                   env.logger.debug "Device '#{_device.name}' updated with gbridgeId '#{device.id}'"
             .catch (err) =>
-              env.logger.error "Error: updating gbridge_device_id: " + JSON.stringify(err,null,2)
+              env.logger.error "Error: updating gbridge_device_id: '#{_deviceAdd.name}'"
+              switch err.error.error_code
+                when "trait_type_unknown"
+                  env.logger.error "One of the trait types not implemented in gBridge, please add trait manually in gBridge " + JSON.stringify(err,null,2)
+                else
+                  env.logger.error "Error: " + JSON.stringify(err,null,2)
               reject()
 
           for _device in gbridgeUpdates

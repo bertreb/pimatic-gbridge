@@ -32,3 +32,5 @@
 	* updated readme
 * 20200107, v0.2.19
 	* added and updated shutter device and adapter
+* 20200114, v0.2.20
+	* added support for color of Milight RGBWZone and FullColorZone

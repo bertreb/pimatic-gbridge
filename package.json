@@ -26,7 +26,7 @@
     "google",
     "assistant"
   ],
-  "version": "0.2.19",
+  "version": "0.2.20",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bertreb/pimatic-gbridge.git"

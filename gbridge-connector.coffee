@@ -52,10 +52,8 @@ module.exports = (env) ->
               if @count is 0
                 resolve(@devices)
             .catch (err) =>
-              env.logger.error err
-              reject()
+              reject(err)
         .catch (err) =>
-          env.logger.error err
           reject(err)
       )
 
