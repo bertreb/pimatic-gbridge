@@ -40,6 +40,7 @@ module.exports = (env) ->
           .then((temp)=>
             @ambient = temp
             @temperatureDevice.on "temperature", ambientHandler
+            @temperatureDevice.system = @
             @ambiantSensor = true
           )
 
@@ -51,6 +52,7 @@ module.exports = (env) ->
           .then((humidity)=>
             @humidity = humidity
             @temperatureDevice.on "humidity", humidityHandler
+            @temperatureDevice.system = @
             @humiditySensor = true
           )
 
