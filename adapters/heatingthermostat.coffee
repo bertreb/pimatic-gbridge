@@ -166,7 +166,7 @@ module.exports = (env) ->
     getTraits: () =>
       traits = [
         {'type' : 'TempSet.Setpoint'},
-        {'type' : 'TempSet.Mode'},
+        {'type' : 'TempSet.Mode', 'modesSupported' : ["off","heat","on","eco"]},
         {'type' : 'TempSet.Ambient'}
       ]
       hum = {'type' : 'TempSet.Humidity'}
