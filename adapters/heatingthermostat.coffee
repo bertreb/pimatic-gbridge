@@ -161,13 +161,17 @@ module.exports = (env) ->
     getType: () ->
       return "Thermostat"
 
-    getTraits: () ->
+    getTraits: () =>
       traits = [
         {'type' : 'TempSet.Setpoint'},
         {'type' : 'TempSet.Mode'},
-        {'type' : 'TempSet.Ambient'},
-        {'type' : 'TempSet.Humidity'}
+        {'type' : 'TempSet.Ambient'}
       ]
+      hum = {'type' : 'TempSet.Humidity'}
+      if @temperatureDevice? 
+        if @temperatureDevice.hasAttribute('humidity')
+          hum = {'type' : ' TempSet.Humidity', 'humiditySupported' : true}
+      traits.push hum
       return traits
 
     setTwofa: (_twofa) =>

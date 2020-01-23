@@ -176,7 +176,7 @@ module.exports = (env) ->
           @gbridgeConnector.getDevices()
           .then (devices) =>
             @gbridgeDevices = devices
-            env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices)
+            env.logger.debug "gbridge devices received, devices: " + JSON.stringify(devices,null,2)
             @addAdapters()
             .then () =>
               env.logger.debug "Adapters added"

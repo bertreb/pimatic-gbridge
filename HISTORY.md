@@ -34,5 +34,6 @@
 	* added and updated shutter device and adapter
 * 20200114, v0.2.20
 	* added support for color of Milight RGBWZone and FullColorZone
-* 20200123, v0.2.21
+* 20200123, v0.2.22
 	* added support for DummyHeatingThermostat
+	* added autoconfig of humidity support in gBridge
