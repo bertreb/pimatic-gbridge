@@ -50,7 +50,7 @@ For the Shutter device the auxiliary field is used to control a shutter via a sh
 For the Milight devices automatic configuration is not implemented. You need to configure the milight device in gBridge (with the traits 'OnOff', 'Brightness' and 'colorsettingrgb') and after that configure(add) the milight device in config of the gBridge device in Pimatic. The name you used for the Milight device in gBridge must by exactly the same as the name in pimatic gBridge! When you want to change the name of a Milight device you have to reinstall it in gBridge (because automatic configuration isn't supported)
 
 #### Thermostat
-For the HeatingThermostat you can add a temperature/humidity sensor. Add in the auxiliary field the device ID of the temperature sensor. The sensor needs to have 'temperature' and 'humidity' named attributes. If the attribute names are different, you can put a variables devices 'in between' (which converts the attribute names to 'temperature' and 'humidity').
+For the HeatingThermostat you CAN add a temperature/humidity sensor. In the auxiliary field, add the device-id of the temperature/humidity sensor. The sensor needs to have 'temperature' and 'humidity' named attributes. If the attribute names are different, you can put a variables devices 'in between' (which converts the attribute names to 'temperature' and 'humidity').
 The heating device is only using the temperature setting of the device.
 The following modes are supported: off, heat and eco.
 Mode setting options via Pimatic Gui are not used. The mode attributes will be set by gBridge and can be accessed/used via the device-id.mode variable
