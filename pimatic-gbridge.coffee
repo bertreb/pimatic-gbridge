@@ -9,7 +9,7 @@ module.exports = (env) ->
   lightColorAdapter = require('./adapters/lightcolor')(env)
   buttonAdapter = require('./adapters/button')(env)
   shutterAdapter = require('./adapters/shutter')(env)
-  #heatingThermostatAdapter = require('./adapters/heatingthermostat')(env)
+  heatingThermostatAdapter = require('./adapters/heatingthermostat')(env)
   mqtt = require('mqtt')
   _ = require('lodash')
 
@@ -129,8 +129,9 @@ module.exports = (env) ->
             unless _.find(device.config.buttons, (btn) => btn.id == _device.pimatic_subdevice_id)
               throw new Error "Button #{_device.pimatic_subdevice_id} does not exist"
             #device type and id implemented
-          else if device instanceof env.devices.HeatingThermostat
-            throw new Error "Device type HeatingThermostat not implemented"
+          else if device instanceof env.devices.DummyHeatingThermostat
+            #device type implemented
+            #throw new Error "Device type HeatingThermostat not implemented"
           else
             throw new Error "Init: Device type of device #{_device.id} does not exist"
       .catch (err) =>
@@ -204,15 +205,16 @@ module.exports = (env) ->
         _trait = _info[3]
         _value = String message #JSON.parse(message)
 
-        env.logger.debug "topic: " + topic + ", message: " + message + " received " + JSON.stringify(packet)
+        #env.logger.debug "topic: " + topic + ", message: " + message
+        #env.logger.debug "  received " +  (if packet.payload.data? then String packet.payload)
         switch String message
-          when "EXECUTE"
-            # do nothing
-            env.logger.debug "EXECUTE received: " + JSON.stringify(packet)
-          when "SYNC"
-            env.logger.debug "SYNC received: " + JSON.stringify(packet)
+          #when "EXECUTE"
+          #  # do nothing
+          #  #env.logger.debug "EXECUTE received: " + JSON.stringify(packet)
+          #when "SYNC"
+          #  #env.logger.debug "SYNC received: " + JSON.stringify(packet)
           when "QUERY"
-            env.logger.debug "device_id: " + _device_id + ", message: " + message + ", " + JSON.stringify(packet)
+            #env.logger.debug "device_id: " + _device_id + ", message: " + message + ", " + JSON.stringify(packet)
             for _device in @config.devices
               _adapter = @getAdapter(_device)
               #_adapter = @adapters[_device.pimatic_device_id]
@@ -225,7 +227,7 @@ module.exports = (env) ->
               if _adapter?
                 if _adapter.gbridgeDeviceId == _device_id
                   if topic.endsWith('/set')
-                    env.logger.debug "/set received for gbridge device #{_device_id}, no action"
+                    # env.logger.debug "/set received for gbridge device #{_device_id}, no action"
                   else
                     _adapter.executeAction(_trait, _value)
                     return
@@ -304,9 +306,12 @@ module.exports = (env) ->
           else if pimaticDevice instanceof env.devices.ButtonsDevice
             env.logger.debug "Add button adapter with ID: " + pimaticDevice.id
             @addAdapter(new buttonAdapter(_adapterConfig))
-          #else if pimaticDevice instanceof env.devices.HeatingThermostat
-          #  env.logger.debug "Add heatingThermostat adapter with ID: " + pimaticDevice.id
-          #  @addAdapter(new heatingThermostatAdapter(_adapterConfig))
+          else if pimaticDevice instanceof env.devices.DummyHeatingThermostat
+            env.logger.debug "Add heatingThermostat adapter with ID: " + pimaticDevice.id
+            #add thermostat and humidity devices
+            if _value.auxiliary?
+              _adapterConfig.auxiliary = @devMgr.getDeviceById(_value.auxiliary)
+            @addAdapter(new heatingThermostatAdapter(_adapterConfig))
           else if pimaticDevice instanceof env.devices.ShutterController
             env.logger.debug "Add shutter adapter with ID: " + pimaticDevice.id
             @addAdapter(new shutterAdapter(_adapterConfig))
@@ -343,7 +348,6 @@ module.exports = (env) ->
           env.logger.debug "gbridgeRemovals: " + JSON.stringify(gbridgeRemovals)
 
           for _device in gbridgeAdditions
-            #env.logger.info "_device: " + JSON.stringify(_device,null,2)
             adapter = @getAdapter(_device)
             unless adapter?
               env.logger.error "Adapter not found for pimatic device '#{_device.pimatic_device_id}'"
