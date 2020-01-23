@@ -50,7 +50,7 @@ For the Milight devices automatic configuration is not implemented. You need to 
 For the HeatingThermostat you can add a temperature/humidity sensor. Add in the auxiliary field the device ID of the temperature sensor. The sensor needs to have 'temperature' and 'humidity' named attributes. If the attribute names are different, you can put a variables devices 'in between' (which converts the attribute names to 'temperature' and 'humidity').
 The heating device is only using the temperature setting of the device.
 The following modes are supported: off, heat and eco.
-Mode setting options via Pimatic Gui are not used. The mode attributes will be set by gBridge and can be accessed/used via the <device-id>.mode variable
+Mode setting options via Pimatic Gui are not used. The mode attributes will be set by gBridge and can be accessed/used via the device-id.mode variable
 
 ```
 {
