@@ -24,10 +24,14 @@ module.exports = (env) ->
       .then((temp)=>
         @setpoint = temp
       )
-      
+
+
       @thermostat = on
       @mode = "heat"
-
+      @device.changeModeTo(@mode)
+      .then(() =>
+        env.logger.debug "Thermostat mode changed to " + @mode
+      )
       @ambient = 0
       @ambiantSensor = false
       if @temperatureDevice?
@@ -58,6 +62,7 @@ module.exports = (env) ->
       @device.system = @
 
       @publishState()
+
 
     modeHandler = (mode) ->
       # device status changed, NOT updating device status in gBridge
@@ -106,6 +111,10 @@ module.exports = (env) ->
             when "off"
               @thermostat = off
               @mode = "off"
+          @device.changeModeTo(@mode)
+          .then(() =>
+            env.logger.debug "Thermostat mode changed to " + @mode
+          )
           @_setThermostat(@thermostat, @mode)
         when 'tempset-setpoint'
           env.logger.debug "Execute action for device " + @device.id + ", set setpoint: " + value

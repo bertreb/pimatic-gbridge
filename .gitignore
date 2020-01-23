@@ -2,3 +2,4 @@
 node_modules
 .js
 adapter/.DS_Store
+package-lock.json

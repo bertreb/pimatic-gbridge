@@ -40,10 +40,15 @@ Gbridge device
 After the plugin is installed a Gbridge device can be added.
 
 Below the settings with the default values. In the devices your configure which Pimatic devices will be controlled by Google Assistant and what name they get. The name is visible in the Google Assistant and is the name you use in voice commands.
-In this release the SwitchActuator, DimmerActuator, ButtonsDevice, ShutterController and Milight (RGBWZone and FullColorZone) based Pimatic devices are supported.
+In this release the SwitchActuator, DimmerActuator, ButtonsDevice, ShutterController, Milight (RGBWZone and FullColorZone) and HeatingThermostat based Pimatic devices are supported.
 When there's at least 1 device in the config, the dot will go present after a connection to gBridge and the mqtt server is made.
 
 For the Milight devices automatic configuration is not implemented. You need to configure the milight device in gBridge (with the traits 'OnOff', 'Brightness' and 'colorsettingrgb') and after that configure(add) the milight device in config of the gBridge device in Pimatic. The name you used for the Milight device in gBridge must by exactly the same as the name in pimatic gBridge! When you want to change the name of a Milight device you have to reinstall it in gBridge (because automatic configuration isn't supported)
+
+For the HeatingThermostat you can add a temperature/humidity sensor. Add in the auxiliary field the device ID of the temperature sensor. The sensor needs to have 'temperature' and 'humidity' named attributes. If the attribute names are different, you can put a variables devices 'in between' (which converts the attribute names to 'temperature' and 'humidity').
+The heating device is only using the temperature setting of the device.
+The following modes are supported: off, heat and eco.
+Mode setting options via Pimatic Gui are not used. The mode attributes will be set by gBridge and can be accessed/used via the <device-id>.mode variable
 
 ```
 {
@@ -52,7 +57,8 @@ For the Milight devices automatic configuration is not implemented. You need to 
     devices:  "list of devices connected to Google Assistant"
       name:                 "the gBridge device name, and command used in Google Assistant"
       pimatic_device_id:    "the ID of the pimatic device"
-      pimatic_subdevice_id: "the ID of a pimatic subdevice, only needed for a button id"        
+      pimatic_subdevice_id: "the ID of a pimatic subdevice, only needed for a button id"
+      auxiliary:            "adapter specific field to add functionality to the bridge"
       twofa:                 "Two-step confirmation. Google Assistant will ask for confirmation"
                               ["none", "ack"] default: "none"
 }
