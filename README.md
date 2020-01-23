@@ -69,6 +69,10 @@ Mode setting options via Pimatic Gui are not used. The mode attributes will be s
 }
 ```
 
+
+#### Deleting a gBridge device
+Before you delete a gBridge device, please remove first all devices in the config and save the config. After that you can delete the gBridge device.
+If you deleted the gBridge device before deleting the used devices, you must delete the devices in the gBridge management portal.
 ---------
 
 The plugin is Node v10 compatible and in development. You could backup Pimatic before you are using this plugin!
