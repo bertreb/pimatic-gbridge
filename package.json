@@ -17,6 +17,7 @@
     "adapters/switch.coffee",
     "adapters/button.coffee",
     "adapters/shutter.coffee",
+    "adapters/heatingthermostat.coffee",
     "README.md",
     "LICENSE"
   ],
