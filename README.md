@@ -40,20 +40,41 @@ Gbridge device
 After the plugin is installed a Gbridge device can be added.
 
 Below the settings with the default values. In the devices your configure which Pimatic devices will be controlled by Google Assistant and what name they get. The name is visible in the Google Assistant and is the name you use in voice commands.
-In this release the SwitchActuator, DimmerActuator, ButtonsDevice, ShutterController, Milight (RGBWZone and FullColorZone) and HeatingThermostat based Pimatic devices are supported.
+In this release the SwitchActuator, DimmerActuator, ButtonsDevice, ShutterController, Milight (RGBWZone and FullColorZone), HeatingThermostat, Contact and Temperature/Humidity sensor based Pimatic devices are supported.
 When there's at least 1 device in the config, the dot will go present after a connection to gBridge and the mqtt server is made.
+
+
 
 #### Shutter
 For the Shutter device the auxiliary field is used to control a shutter via a shell script. The position of the shutter (the value) is added at the end of the script (with a space) before executing the script. A return value is used as actual shutter position.
 
+More info voice command on [gBridge](https://doc.gbridge.io/traits/openclose.html)
+
 #### Milight
 For the Milight devices automatic configuration is not implemented. You need to configure the milight device in gBridge (with the traits 'OnOff', 'Brightness' and 'colorsettingrgb') and after that configure(add) the milight device in config of the gBridge device in Pimatic. The name you used for the Milight device in gBridge must by exactly the same as the name in pimatic gBridge! When you want to change the name of a Milight device you have to reinstall it in gBridge (because automatic configuration isn't supported)
+More info on [gBridge](https://doc.gbridge.io/traits/brightness.html)
+
+#### Contact
+You can add a Pimatic contact device to gBridge.
+You give the contact a name that is usable with Google Assistant. The contact device id is put into the pimatic_device_id field. The rest of the fields is not used.
+You can ask Google Assistant what de status of the contact-name is, or if a contact-name is opened or closed.
+
+More info voice command on [gBridge](https://doc.gbridge.io/traits/openclose.html)
 
 #### Thermostat
 For the HeatingThermostat you CAN add a temperature/humidity sensor. In the auxiliary field, add the device-id of the temperature/humidity sensor. The sensor needs to have 'temperature' and 'humidity' named attributes. If the attribute names are different, you can put a variables devices 'in between' (which converts the attribute names to 'temperature' and 'humidity').
 The heating device is only using the temperature setting of the device.
 The following modes are supported: off, heat and eco.
-Mode setting options via Pimatic Gui are not used. The mode attributes will be set by gBridge and can be accessed/used via the device-id.mode variable
+
+More info voice command on [gBridge](https://doc.gbridge.io/traits/https://doc.gbridge.io/traits/temperaturesetting)
+
+#### Temperature
+The temperature/humidity sensor is not supported directly by gBridge and Google Assistant. This temperature/humidity sensor via implemented via a DummyThermostat.
+The configuration is as follows:
+- pimatic_device_id: the Temp/Hum device-id of the Pimatic Sensor
+- auxiliary: the attribute name of the temperature attribute of the Pimatic sensor
+- auxiliary2: if available the attribute name of the humidity attribute of the Pimatic sensor
+In the Google Assistant (or Home app) you hear/see a thermostat device with the same ambiant(room) and setpoint temperature. This value is the temperature value of your Pimatic sensor.
 
 ```
 {
@@ -64,6 +85,7 @@ Mode setting options via Pimatic Gui are not used. The mode attributes will be s
       pimatic_device_id:    "the ID of the pimatic device"
       pimatic_subdevice_id: "the ID of a pimatic subdevice, only needed for a button id"
       auxiliary:            "adapter specific field to add functionality to the bridge"
+      auxiliary2:            "2nd adapter specific field to add functionality to the bridge"
       twofa:                 "Two-step confirmation. Google Assistant will ask for confirmation"
                               ["none", "ack"] default: "none"
 }

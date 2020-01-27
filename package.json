@@ -18,6 +18,8 @@
     "adapters/button.coffee",
     "adapters/shutter.coffee",
     "adapters/heatingthermostat.coffee",
+    "adapters/contact.coffee",
+    "adapters/temperature.coffee",
     "README.md",
     "LICENSE"
   ],
@@ -28,7 +30,7 @@
     "google",
     "assistant"
   ],
-  "version": "0.2.24",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bertreb/pimatic-gbridge.git"

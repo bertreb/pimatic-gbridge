@@ -29,6 +29,10 @@ module.exports = {
               description: "adapter specific field to add functionality to the bridge"
               type: "string"
               required: false
+            auxiliary2:
+              description: "adapter specific field to add 2nd functionality to the bridge"
+              type: "string"
+              required: false
             twofa:
               description: "Two-step confirmation. Google Assistant will ask for confirmation"
               enum: ["none", "ack"]

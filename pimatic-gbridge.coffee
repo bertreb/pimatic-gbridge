@@ -10,6 +10,8 @@ module.exports = (env) ->
   buttonAdapter = require('./adapters/button')(env)
   shutterAdapter = require('./adapters/shutter')(env)
   heatingThermostatAdapter = require('./adapters/heatingthermostat')(env)
+  contactAdapter = require('./adapters/contact')(env)
+  temperatureAdapter = require('./adapters/temperature')(env)
   mqtt = require('mqtt')
   _ = require('lodash')
 
@@ -112,34 +114,13 @@ module.exports = (env) ->
       else
         @mqttOptions["protocolId"] = @config?.mqttProtocol or @plugin.configProperties.mqttProtocol.default
 
-
-      @framework.variableManager.waitForInit()
-      .then () =>
-        for _device in @config.devices
-          device = @framework.deviceManager.getDeviceById(_device.pimatic_device_id)
-          if device.config.class is "MilightRGBWZone" or device.config.class is "MilightFullColorZone"
-            #device type implemented
-          else if device instanceof env.devices.DimmerActuator
-            #device type implemented
-          else if device instanceof env.devices.SwitchActuator
-            #device type implemented
-          else if device instanceof env.devices.ShutterController
-            #device type implemented
-          else if device instanceof env.devices.ButtonsDevice
-            unless _.find(device.config.buttons, (btn) => btn.id == _device.pimatic_subdevice_id)
-              throw new Error "Button #{_device.pimatic_subdevice_id} does not exist"
-            #device type and id implemented
-          else if device instanceof env.devices.DummyHeatingThermostat
-            #device type implemented
-            #throw new Error "Device type HeatingThermostat not implemented"
-          else
-            throw new Error "Init: Device type of device #{_device.id} does not exist"
-      .catch (err) =>
-        env.logger.error "error: " + err.message
-
+      for _device in @config.devices
+        deviceNameExists = _.find(@framework.config.devices, (d) => d.id is _device.pimatic_device_id)
+        unless deviceNameExists?
+          throw new Error "Device #{_device.pimatic_device_id} does not exist"
+        
       if @plugin.gbridgeSubscription is "Free" and @config.devices.length > 4
         throw new Error "Your subscription allows max 4 devices"
-
 
       @mqttConnector = new mqtt.connect(@mqttOptions)
       @mqttConnector.on "connect", () =>
@@ -255,22 +236,6 @@ module.exports = (env) ->
         env.logger.info "Gbridge offline"
         @emit 'presence', false
 
-    ###
-    _addAdapter: (pimatic_divice_id, newAdapter) =>
-      @adapters[pimatic_divice_id] = newAdapter
-
-    _getAdapter: (device_id) =>
-      adapter = @adapters[device_id]
-      if adapter?
-        return adapter
-      else
-        for adapter2 of @adapters
-          if String adapter2.gbridgeDeviceId == String device_id
-            return adapter2
-        env.logger.error "Adapter for device id: '#{device_id}' not found"
-        return undefined
-    ###
-
     getGbridgeDeviceId: (pimatic_device_name) =>
       for gbridgeDevice in @gbridgeDevices
         if gbridgeDevice.name == pimatic_device_name
@@ -291,6 +256,7 @@ module.exports = (env) ->
             mqttUser: @plugin.userPrefix
             gbridgeDeviceId: @getGbridgeDeviceId(_value.name)
             auxiliary: _value.auxiliary
+            auxiliary2: _value.auxiliary2
             twoFa: _value.twofa
 
             #twoFaPin: if _value.twofaPin? then _value.twofaPin else undefined
@@ -303,6 +269,9 @@ module.exports = (env) ->
           else if pimaticDevice instanceof env.devices.SwitchActuator
             env.logger.debug "Add switch adapter with ID: " + pimaticDevice.id
             @addAdapter(new switchAdapter(_adapterConfig))
+          else if pimaticDevice instanceof env.devices.Sensor and ((pimaticDevice.config.class).toLowerCase()).search('contact') >= 0
+            env.logger.debug "Add contact adapter with ID: " + pimaticDevice.id
+            @addAdapter(new contactAdapter(_adapterConfig))
           else if pimaticDevice instanceof env.devices.ButtonsDevice
             env.logger.debug "Add button adapter with ID: " + pimaticDevice.id
             @addAdapter(new buttonAdapter(_adapterConfig))
@@ -315,6 +284,9 @@ module.exports = (env) ->
           else if pimaticDevice instanceof env.devices.ShutterController
             env.logger.debug "Add shutter adapter with ID: " + pimaticDevice.id
             @addAdapter(new shutterAdapter(_adapterConfig))
+          else if pimaticDevice.hasAttribute(_value.auxiliary)
+            env.logger.debug "Add contact adapter with ID: " + pimaticDevice.id
+            @addAdapter(new temperatureAdapter(_adapterConfig))
           else
             env.logger.error "AddAdapters: Device type does not exist"
         resolve()

@@ -4,13 +4,14 @@ module.exports = (env) ->
   events = require 'events'
 
 
-  class HeatingThermostatAdapter extends events.EventEmitter
+  class TemperatureAdapter extends events.EventEmitter
 
     constructor: (adapterConfig) ->
 
       @device = adapterConfig.pimaticDevice
       @subDevice = adapterConfig.pimaticSubDeviceId
-      @temperatureDevice = adapterConfig.auxiliary
+      @temperatureAttribute = adapterConfig.auxiliary
+      @humidityAttribute = adapterConfig.auxiliary2
       @topicPrefix = adapterConfig.mqttPrefix
       @topicUser = adapterConfig.mqttUser
       @gbridgeDeviceId = Number adapterConfig.gbridgeDeviceId
@@ -19,70 +20,39 @@ module.exports = (env) ->
       @twoFa = adapterConfig.twoFa
       @twoFaPin = adapterConfig.twoFaPin
 
-      @device.getTemperatureSetpoint()
-      .then((temp)=>
-        @setpoint = temp
-      )
+      @mode ="heat"
 
-
-      @thermostat = on
-      @mode = "heat"
-      @device.changeModeTo(@mode)
-      .then(() =>
-        env.logger.debug "Thermostat mode changed to " + @mode
-      )
-      @ambient = 0
-      @ambiantSensor = false
-      if @temperatureDevice?
-        if @temperatureDevice.hasAttribute('temperature')
-          @temperatureDevice.getTemperature()
-          .then((temp)=>
-            @ambient = temp
-            @temperatureDevice.on "temperature", ambientHandler
-            @temperatureDevice.system = @
-            @ambiantSensor = true
-          )
-
+      @temperature = 0
+      @temperatureSensor = false
       @humidity = 0
       @humiditySensor = false
-      if @temperatureDevice?
-        if @temperatureDevice.hasAttribute('humidity')
-          @temperatureDevice.getHumidity()
-          .then((humidity)=>
-            @humidity = humidity
-            @temperatureDevice.on "humidity", humidityHandler
-            @temperatureDevice.system = @
-            @humiditySensor = true
-          )
+      if @device?
+        if @device.hasAttribute(@temperatureAttribute)
+          temp = @device.getLastAttributeValue(@temperatureAttribute)
+          @temperature = temp
+          @setpoint = temp
+          @device.on @temperatureAttribute, temperatureHandler
+          @device.system = @
+          @temperatureSensor = true
+        if @device.hasAttribute(@humidityAttribute)
+          humidity = @device.getLastAttributeValue(@humidityAttribute)
+          @humidity = humidity
+          @device.on @humidityAttribute, humidityHandler
+          @humiditySensor = true
 
       #modeItems = ["off", "heat", "cool", "on", "auto", "fan-only", "purifier", "eco", "dry"]
       #Default gBridge supported modes: ["off","heat","on","auto"]
 
-      @device.on "mode", modeHandler
-      @device.on "temperatureSetpoint", setpointHandler
       @device.system = @
 
-      @publishState()
+      if @temperatureSensor or @humiditySensor 
+        @publishState()
 
-
-    modeHandler = (mode) ->
-      # device status changed, NOT updating device status in gBridge
-      #_mqttHeader1 = @system.getTopic() + '/tempset-mode/set'
-      #@system.mode = mode
-      env.logger.debug "Device state change, no publish!!!" # publish mode: mqttHeader: " + _mqttHeader1 + ", mode: " + mode
-      #@system.mqttConnector.publish(_mqttHeader1, String mode)
-
-    setpointHandler = (setpoint) ->
-      # device status changed, updating device status in gBridge
-      _mqttHeader2 = @system.getTopic() + '/tempset-setpoint/set'
-      @system.setpoint = setpoint
-      env.logger.debug "Device state change, publish setpoint: mqttHeader: " + _mqttHeader2 + ", setpoint: " + setpoint
-      @system.mqttConnector.publish(_mqttHeader2, String setpoint)
-
-    ambientHandler = (ambient) ->
+    temperatureHandler = (ambient) ->
       # device status changed, updating device status in gBridge
       _mqttHeader3 = @system.getTopic() + '/tempset-ambient/set'
-      @system.ambient = ambient
+      @system.temperature = ambient
+      @system.setpoint = ambient
       env.logger.debug "Device state change, publish ambient: mqttHeader: " + _mqttHeader3 + ", ambient: " + ambient
       @system.mqttConnector.publish(_mqttHeader3, String ambient)
 
@@ -98,28 +68,10 @@ module.exports = (env) ->
       env.logger.debug "received action, type: " + type + ", state: " + value
       switch type
         when 'tempset-mode'
-          env.logger.debug "Execute action for device " + @device.id + ", set mode: " + value
-          switch value
-            when "heat"
-              @thermostat = on
-              @mode = "heat"
-            when "eco"
-              @thermostat = on
-              @mode = "eco"
-            when "on"
-              @thermostat = on
-              @mode = "heat"
-            when "off"
-              @thermostat = off
-              @mode = "off"
-          @device.changeModeTo(@mode)
-          .then(() =>
-            env.logger.debug "Thermostat mode changed to " + @mode
-          )
-          @_setThermostat(@thermostat, @mode)
+          env.logger.debug "No action for device " + @device.id + ", set mode: " + value
         when 'tempset-setpoint'
-          env.logger.debug "Execute action for device " + @device.id + ", set setpoint: " + value
-          @device.changeTemperatureTo(Math.round((Number value) * 100) / 100)
+          env.logger.debug "No action for device " + @device.id + ", set setpoint: " + value
+          #@device.changeTemperatureTo(Math.round((Number value) * 100) / 100)
         when 'requestsync'
           env.logger.debug "Requestsync -> publish state for device " + @device.id
           @publishState()
@@ -146,9 +98,6 @@ module.exports = (env) ->
         @mqttConnector.publish(_mqttHeader4, String @humidity)
 
 
-    _setThermostat: (action, mode) =>
-      env.logger.debug "Switch Thermostat: " + action + ", with mode: " + mode
-
     setGbridgeDeviceId: (deviceId) =>
       @gbridgeDeviceId = deviceId
 
@@ -169,9 +118,8 @@ module.exports = (env) ->
         {'type' : 'TempSet.Ambient'}
       ]
       hum = {'type' : 'TempSet.Humidity'}
-      if @temperatureDevice? 
-        if @temperatureDevice.hasAttribute('humidity')
-          hum = {'type' : ' TempSet.Humidity', 'humiditySupported' : true}
+      if humiditySensor?
+        hum = {'type' : ' TempSet.Humidity', 'humiditySupported' : true}
       traits.push hum
       return traits
 
@@ -190,10 +138,8 @@ module.exports = (env) ->
       return _twoFa
 
     destroy: ->
-      @device.removeListener "mode", modeHandler
-      @device.removeListener "temperatureSetpoint", setpointHandler
       if @ambientDevice?
-        @temperatureDevice.removeListener "temperature", ambientHandler
+        @temperatureDevice.removeListener @temperatureAttribute, ambientHandler
       if @humidityDevice?
-        @temperatureDevice.removeListener "humidity", humidityHandler
+        @temperatureDevice.removeListener @humidityAttribute, humidityHandler
 
