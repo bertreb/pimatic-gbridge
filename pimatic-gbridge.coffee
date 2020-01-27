@@ -285,7 +285,7 @@ module.exports = (env) ->
             env.logger.debug "Add shutter adapter with ID: " + pimaticDevice.id
             @addAdapter(new shutterAdapter(_adapterConfig))
           else if pimaticDevice.hasAttribute(_value.auxiliary)
-            env.logger.debug "Add contact adapter with ID: " + pimaticDevice.id
+            env.logger.debug "Add temperature adapter with ID: " + pimaticDevice.id
             @addAdapter(new temperatureAdapter(_adapterConfig))
           else
             env.logger.error "AddAdapters: Device type does not exist"
