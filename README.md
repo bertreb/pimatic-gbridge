@@ -67,7 +67,7 @@ For the HeatingThermostat you CAN add a temperature/humidity sensor. In the auxi
 The heating device is only using the temperature setting of the device.
 The following modes are supported: off, heat and eco.
 
-More info voice command on [gBridge](https://doc.gbridge.io/traits/https://doc.gbridge.io/traits/temperaturesetting)
+More info voice command on [gBridge](https://doc.gbridge.io/traits/https://doc.gbridge.io/traits/temperaturesetting.html)
 
 #### Temperature
 The temperature/humidity sensor is not supported directly by gBridge and Google Assistant. This temperature/humidity sensor via implemented via a DummyThermostat.
