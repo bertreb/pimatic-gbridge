@@ -282,6 +282,9 @@ module.exports = (env) ->
             if _value.auxiliary?
               _adapterConfig.auxiliary = @devMgr.getDeviceById(_value.auxiliary)
             @addAdapter(new heatingThermostatAdapter(_adapterConfig))
+          #else if pimaticDevice instanceof env.devices.ShellSwitch
+          #  env.logger.debug "Add scene adapter with ID: " + pimaticDevice.id
+          #  @addAdapter(new sceneAdapter(_adapterConfig))
           else if pimaticDevice instanceof env.devices.ShutterController
             env.logger.debug "Add shutter adapter with ID: " + pimaticDevice.id
             @addAdapter(new shutterAdapter(_adapterConfig))

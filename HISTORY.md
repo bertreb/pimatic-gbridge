@@ -39,7 +39,7 @@
 	* added autoconfig of humidity support in gBridge
 	* fix
 	* explicit modes setting in traits of Thermostat
-*20200127, v.0.3.3
+*20200127, v.0.3.4
 	* added support for contact device
 	* added support for temperature/humidity sensor
 	* update handling of eventlisteners
