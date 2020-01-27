@@ -338,7 +338,7 @@ module.exports = (env) ->
                   _adapter = @getAdapter(_value)
                   _adapter.setGbridgeDeviceId(device.id)
                   #@adapters[_value.pimatic_device_id].setGbridgeDeviceId(device.id)
-                  env.logger.debug "Device '#{_device.name}' updated with gbridgeId '#{device.id}'"
+                  env.logger.debug "Device '#{device.name}' updated with gbridgeId '#{device.id}'"
             .catch (err) =>
               env.logger.error "Error: updating gbridge_device_id: '#{_deviceAdd.name}'"
               switch err.error.error_code
