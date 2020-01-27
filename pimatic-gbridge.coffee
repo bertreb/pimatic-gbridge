@@ -12,6 +12,7 @@ module.exports = (env) ->
   heatingThermostatAdapter = require('./adapters/heatingthermostat')(env)
   contactAdapter = require('./adapters/contact')(env)
   temperatureAdapter = require('./adapters/temperature')(env)
+  #sceneAdapter = require('./adapters/scene')(env)
   mqtt = require('mqtt')
   _ = require('lodash')
 

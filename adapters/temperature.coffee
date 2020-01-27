@@ -138,6 +138,6 @@ module.exports = (env) ->
       return _twoFa
 
     destroy: ->
-      @temperatureDevice.removeListener @temperatureAttribute, ambientHandler
-      @temperatureDevice.removeListener @humidityAttribute, humidityHandler
+      @device.removeListener @temperatureAttribute, ambientHandler
+      @device.removeListener @humidityAttribute, humidityHandler
 
