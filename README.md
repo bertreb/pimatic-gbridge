@@ -52,7 +52,8 @@ More info voice command on [gBridge](https://doc.gbridge.io/traits/openclose.htm
 
 #### Milight
 For the Milight devices automatic configuration is not implemented. You need to configure the milight device in gBridge (with the traits 'OnOff', 'Brightness' and 'colorsettingrgb') and after that configure(add) the milight device in config of the gBridge device in Pimatic. The name you used for the Milight device in gBridge must by exactly the same as the name in pimatic gBridge! When you want to change the name of a Milight device you have to reinstall it in gBridge (because automatic configuration isn't supported)
-More info on [gBridge](https://doc.gbridge.io/traits/brightness.html)
+
+More info voice command on [gBridge](https://doc.gbridge.io/traits/brightness.html)
 
 #### Contact
 You can add a Pimatic contact device to gBridge.
