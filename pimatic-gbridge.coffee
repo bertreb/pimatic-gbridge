@@ -269,7 +269,7 @@ module.exports = (env) ->
           else if pimaticDevice instanceof env.devices.SwitchActuator
             env.logger.debug "Add switch adapter with ID: " + pimaticDevice.id
             @addAdapter(new switchAdapter(_adapterConfig))
-          else if pimaticDevice instanceof env.devices.Sensor and ((pimaticDevice.config.class).toLowerCase()).search('contact') >= 0
+          else if pimaticDevice instanceof env.devices.Sensor and pimaticDevice.hasAttribute('contact')
             env.logger.debug "Add contact adapter with ID: " + pimaticDevice.id
             @addAdapter(new contactAdapter(_adapterConfig))
           else if pimaticDevice instanceof env.devices.ButtonsDevice

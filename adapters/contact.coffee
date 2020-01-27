@@ -23,7 +23,7 @@ module.exports = (env) ->
 
       @device.getContact()
       .then((contact)=>
-        if contact then @contact = 100 else @contact = 0
+        if contact then @contact = 0 else @contact = 100
         @device.on "contact", contactHandler
         @device.system = @
 
@@ -34,7 +34,7 @@ module.exports = (env) ->
     contactHandler = (contact) ->
       # device status changed, NOT updating device status in gBridge
       _mqttHeader = @system.getTopic() + '/openclose/set'
-      if contact then @system.contact = 100 else @system.contact = 0
+      if contact then @system.contact = 0 else @system.contact = 100
 
       env.logger.debug "Device state change, publish contact: mqttHeader: " + _mqttHeader + ", contact: " + @system.contact
       @system.mqttConnector.publish(_mqttHeader, String @system.contact)
