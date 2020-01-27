@@ -48,26 +48,26 @@ When there's at least 1 device in the config, the dot will go present after a co
 #### Shutter
 For the Shutter device the auxiliary field is used to control a shutter via a shell script. The position of the shutter (the value) is added at the end of the script (with a space) before executing the script. A return value is used as actual shutter position.
 
-More info voice command on [gBridge](https://doc.gbridge.io/traits/openclose.html)
+More info on Shutter voice commands on [gBridge](https://doc.gbridge.io/traits/openclose.html)
 
 #### Milight
 For the Milight devices automatic configuration is not implemented. You need to configure the milight device in gBridge (with the traits 'OnOff', 'Brightness' and 'colorsettingrgb') and after that configure(add) the milight device in config of the gBridge device in Pimatic. The name you used for the Milight device in gBridge must by exactly the same as the name in pimatic gBridge! When you want to change the name of a Milight device you have to reinstall it in gBridge (because automatic configuration isn't supported)
 
-More info voice command on [gBridge](https://doc.gbridge.io/traits/brightness.html)
+More info Brigtness voice commands on [gBridge](https://doc.gbridge.io/traits/brightness.html)
 
 #### Contact
 You can add a Pimatic contact device to gBridge.
 You give the contact a name that is usable with Google Assistant. The contact device id is put into the pimatic_device_id field. The rest of the fields is not used.
 You can ask Google Assistant what de status of the contact-name is, or if a contact-name is opened or closed.
 
-More info voice command on [gBridge](https://doc.gbridge.io/traits/openclose.html)
+More info on contact voice commands on [gBridge](https://doc.gbridge.io/traits/openclose.html)
 
 #### Thermostat
 For the HeatingThermostat you CAN add a temperature/humidity sensor. In the auxiliary field, add the device-id of the temperature/humidity sensor. The sensor needs to have 'temperature' and 'humidity' named attributes. If the attribute names are different, you can put a variables devices 'in between' (which converts the attribute names to 'temperature' and 'humidity').
 The heating device is only using the temperature setting of the device.
 The following modes are supported: off, heat and eco.
 
-More info voice command on [gBridge](https://doc.gbridge.io/traits/temperaturesetting.html)
+More info on Thermostat voice commands on [gBridge](https://doc.gbridge.io/traits/temperaturesetting.html)
 
 #### Temperature
 The temperature/humidity sensor is not supported directly by gBridge and Google Assistant. This temperature/humidity sensor via implemented via a DummyThermostat.
