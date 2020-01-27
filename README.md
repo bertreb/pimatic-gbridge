@@ -75,6 +75,7 @@ The configuration is as follows:
 - pimatic_device_id: the Temp/Hum device-id of the Pimatic Sensor
 - auxiliary: the attribute name of the temperature attribute of the Pimatic sensor
 - auxiliary2: if available the attribute name of the humidity attribute of the Pimatic sensor
+
 In the Google Assistant (or Home app) you hear/see a thermostat device with the same ambiant(room) and setpoint temperature. This value is the temperature value of your Pimatic sensor.
 
 ```
