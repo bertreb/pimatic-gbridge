@@ -78,7 +78,7 @@ The configuration is as follows:
 
 In the Google Assistant (or Home app) you hear/see a thermostat device with the same ambiant(room) and setpoint temperature. This value is the temperature value of your Pimatic sensor.
 
-### Device configuration
+Device configuration
 -----------------
 
 ```
