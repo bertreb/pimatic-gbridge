@@ -79,6 +79,7 @@ The configuration is as follows:
 In the Google Assistant (or Home app) you hear/see a thermostat device with the same ambiant(room) and setpoint temperature. This value is the temperature value of your Pimatic sensor.
 
 ### Device configuration
+-----------------
 
 ```
 {
@@ -99,6 +100,6 @@ In the Google Assistant (or Home app) you hear/see a thermostat device with the 
 Before you delete a gBridge device, please remove first all devices in the config and save the config. After that you can delete the gBridge device.
 If you deleted the gBridge device before deleting the used devices, you must delete the devices in the gBridge management portal.
 
----------
+-----------------
 
 The plugin is Node v10 compatible and in development. You could backup Pimatic before you are using this plugin!
