@@ -44,3 +44,5 @@
 	* added support for temperature/humidity sensor
 	* update handling of eventlisteners
 	* bugfix in temperature adapter
+*20200130, v.0.3.5
+	* updated sync setpoint and temperature in Temp device

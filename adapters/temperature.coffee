@@ -55,6 +55,9 @@ module.exports = (env) ->
       @system.setpoint = ambient
       env.logger.debug "Device state change, publish ambient: mqttHeader: " + _mqttHeader3 + ", ambient: " + ambient
       @system.mqttConnector.publish(_mqttHeader3, String ambient)
+      _mqttHeader1 = @getTopic() + '/tempset-setpoint/set'
+      env.logger.debug "Publish setpoint, mqttHeader: " + _mqttHeader1 + ", setpoint: " + ambient
+      @system.mqttConnector.publish(_mqttHeader1, String ambient)
 
     humidityHandler = (humidity) ->
       # device status changed, updating device status in gBridge
