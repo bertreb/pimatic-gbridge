@@ -3,6 +3,8 @@ pimatic-gbridge
 The gBridge plugin lets you connect a Pimatic home automation system with a Google assistant via gBridge.
 When you add a supported Pimatic device to the gBridgeDevice devicelist, the device is automatically added in gBridge and Google Assistant.
 
+# The gBridge service ended the 15th of March 2020. This plugin can still work if you would use a self hosted gbridge service.
+
 gBridge is a MQTT broker that 'works with Google'. First you create a gBridge account, connect your google (assistant) account to gBridge and obtaining an API key. Then you can configure the plugin and add devices to be controlled via Google Assistant. Details for setup and configuration at https://about.gbridge.io.
 The number of supported devices is depending on the gBridge plan you've got. The free plan allows 4 devices and the paid plan gives an unlimited number of devices.
 Devices are not exposed automatically to gBridge and Google Assistant. You have to add them individually in the config.
