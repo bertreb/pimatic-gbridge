@@ -3,6 +3,7 @@ pimatic-gbridge
 # The gBridge service ended the 15th of March 2020. 
 
 This plugin can still work if you would use a self hosted gbridge service.
+
 ---
 The gBridge plugin lets you connect a Pimatic home automation system with a Google assistant via gBridge.
 When you add a supported Pimatic device to the gBridgeDevice devicelist, the device is automatically added in gBridge and Google Assistant.
